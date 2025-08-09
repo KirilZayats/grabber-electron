@@ -1,0 +1,16 @@
+{
+  "appId": "com.n-ziermann.electron-course",
+  "files": ["grabber-electron", "grabber-electron-client"],
+  "extraResources": ["grabber-electron/preload.cjs", "src/assets/**"],
+  "icon": "./desktopIcon.png",
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": "AppImage",
+    "category": "Utility"
+  },
+  "win": {
+    "target": ["portable", "msi"]
+  }
+}

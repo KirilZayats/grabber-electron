@@ -3,10 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-	
+  "main": "grabber-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "transpile:electron": "tsc --project src/electron/tsconfig.json",
+    "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -19,6 +21,8 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
