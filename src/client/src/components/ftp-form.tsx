@@ -18,32 +18,30 @@ const FtpForm = () => {
   });
 
   return (
-    <div className="flex flex-col gap-2">
-      <Formik
-        initialValues={ftpConfig}
-        validationSchema={ftpConfigSchema}
-        onSubmit={(values, { setSubmitting }) => {
-          setFtpConfig(values);
-          setSubmitting(false);
-        }}
-      >
-        {({ isSubmitting }) => (
-          <Form>
-            <Field type="text" name="host" />
-            <ErrorMessage name="host" component="div" />
-            <Field type="number" name="port" />
-            <ErrorMessage name="port" component="div" />
-            <Field type="text" name="username" />
-            <ErrorMessage name="username" component="div" />
-            <Field type="password" name="password" />
-            <ErrorMessage name="password" component="div" />
-            <button type="submit" disabled={isSubmitting}>
-              Submit
-            </button>
-          </Form>
-        )}
-      </Formik>
-    </div>
+    <Formik
+      initialValues={ftpConfig}
+      validationSchema={ftpConfigSchema}
+      onSubmit={(values, { setSubmitting }) => {
+        setFtpConfig(values);
+        setSubmitting(false);
+      }}
+    >
+      {({ isSubmitting }) => (
+        <Form className="flex flex-col gap-2">
+          <Field type="text" name="host" />
+          <ErrorMessage name="host" component="div" />
+          <Field type="number" name="port" />
+          <ErrorMessage name="port" component="div" />
+          <Field type="text" name="username" />
+          <ErrorMessage name="username" component="div" />
+          <Field type="password" name="password" />
+          <ErrorMessage name="password" component="div" />
+          <button type="submit" disabled={isSubmitting}>
+            Submit
+          </button>
+        </Form>
+      )}
+    </Formik>
   );
 };
 
