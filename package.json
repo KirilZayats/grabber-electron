@@ -1,0 +1,48 @@
+{
+  "name": "grabber-electron",
+  "description": "Electron app for grabbing data from the ftp server",
+  "author": "Kiril Zayats",
+  "license": "MIT",
+  "homepage": "https://github.com/kirilzayats/grabber-electron",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kirilzayats/grabber-electron.git"
+  },
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "grabber-electron/main.js",
+  "scripts": {
+    "pre-commit": "npm run lint",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "transpile:electron": "tsc --project src/electron/tsconfig.json",
+    "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
+    "husky": "husky init && echo npm run pre-commit > .husky/pre-commit && echo npx --no -- commitlint --edit $1 > .husky/commit-msg",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/js": "^9.32.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react-swc": "^3.11.0",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.32.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.39.0",
+    "vite": "^7.1.0"
+  }
+}
