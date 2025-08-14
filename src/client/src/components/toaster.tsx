@@ -7,12 +7,11 @@ import {
   Toast,
 } from "@chakra-ui/react";
 
-const toaster = createToaster({
-  placement: "bottom-end",
-  pauseOnPageIdle: true,
-});
-
-export const Toaster = () => {
+export const Toaster = ({
+  toaster,
+}: {
+  toaster: ReturnType<typeof createToaster>;
+}) => {
   return (
     <Portal>
       <ChakraToaster toaster={toaster} insetInline={{ mdDown: "4" }}>
