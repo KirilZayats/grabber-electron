@@ -1,0 +1,17 @@
+._ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100vh;
+  border-inline: 2px solid #e2e8f0;
+  width: 33%;
+  padding: 1rem;
+  &rowFields {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  &rowButtons {
+    justify-content: end;
+  }
+}
