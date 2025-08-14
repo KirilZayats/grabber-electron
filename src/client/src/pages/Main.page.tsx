@@ -1,9 +1,12 @@
-import { FtpForm } from "@/components";
+import { FtpForm, LogPanel } from "@/components";
+import styles from "./pages.module.scss";
 
 const MainPage = () => {
   return (
-    <div>
+    <div className={styles._}>
       <FtpForm />
+
+      <LogPanel />
     </div>
   );
 };

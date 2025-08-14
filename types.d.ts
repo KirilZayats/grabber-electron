@@ -3,4 +3,8 @@ interface FtpConfig {
   port: number;
   username: string;
   password: string;
+  localDirectory: string;
+  remoteDirectory: string;
 }
+
+type LogType = "info" | "error" | "warning";
