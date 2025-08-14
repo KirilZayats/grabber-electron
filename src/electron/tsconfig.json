@@ -9,6 +9,7 @@
     // define where to put generated JS
     "outDir": "../../grabber-electron",
     // ignore errors from dependencies
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["../../types"]
   }
 }
