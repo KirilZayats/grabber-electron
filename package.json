@@ -14,7 +14,9 @@
   "main": "grabber-electron/main.js",
   "scripts": {
     "pre-commit": "npm run lint",
-    "dev": "vite",
+    "dev": "npm-run-all --parallel dev:react dev:electron",
+    "dev:react": "vite",
+    "dev:electron": "npm run transpile:electron && cross-env NODE_ENV=development electron .",
     "build": "tsc -b && vite build",
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
     "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
@@ -34,6 +36,7 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
+    "cross-env": "^10.0.0",
     "electron": "^37.2.6",
     "electron-builder": "^26.0.12",
     "eslint": "^9.32.0",
@@ -41,6 +44,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
+    "npm-run-all": "^4.1.5",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.0",
     "vite": "^7.1.0"

@@ -8,4 +8,8 @@ export default defineConfig({
   build: {
     outDir: "grabber-electron-client",
   },
+  server: {
+    port: 5123,
+    strictPort: true,
+  },
 });
