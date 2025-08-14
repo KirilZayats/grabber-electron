@@ -3,10 +3,10 @@
   "description": "Electron app for grabbing data from the ftp server",
   "author": "Kiril Zayats",
   "license": "MIT",
-  "homepage": "https://github.com/kirilzayats/grabber-electron",
+  "homepage": "https://github.com/KirilZayats/grabber-electron",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kirilzayats/grabber-electron.git"
+    "url": "https://github.com/KirilZayats/grabber-electron.git"
   },
   "private": true,
   "version": "0.0.0",
