@@ -7,7 +7,7 @@ import {
   validateLocalDirectory,
   generateLog,
 } from "./utils.js";
-import { testConnection } from "./ftp.js";
+import { getFtpTree, testConnection } from "./ftp.js";
 import WatchDir from "./watchDir.js";
 
 app.on("ready", () => {
@@ -75,5 +75,10 @@ app.on("ready", () => {
 
   ipcMainOn("stopWatching", async () => {
     watchDir.stop();
+  });
+
+  ipcMainOn("getFtpTree", async (payload: FtpConfig & { path?: string }) => {
+    const result = await getFtpTree(payload);
+    ipcWebContentsSend("getFtpTreeResult", mainWindow.webContents, result);
   });
 });
