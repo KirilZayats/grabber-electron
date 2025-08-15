@@ -8,6 +8,19 @@ electron.contextBridge.exposeInMainWorld("electron", {
   testFtpConnectionResult: (callback: (result: boolean) => void) => {
     return ipcOn("testFtpConnectionResult", callback);
   },
+  selectLocalDirectory: () => ipcSend("selectLocalDirectory", undefined),
+  selectLocalDirectoryResult: (callback: (result: string) => void) => {
+    return ipcOn("selectLocalDirectoryResult", callback);
+  },
+  validateLocalDirectory: (payload) =>
+    ipcSend("validateLocalDirectory", payload),
+  validateLocalDirectoryResult: (
+    callback: (result: { path: string; exists: boolean }) => void
+  ) => {
+    return ipcOn("validateLocalDirectoryResult", callback);
+  },
+  startWatching: (payload) => ipcSend("startWatching", payload),
+  stopWatching: () => ipcSend("stopWatching", undefined),
 } satisfies Window["electron"]);
 
 function ipcInvoke<Key extends keyof EventPayloadMapping>(

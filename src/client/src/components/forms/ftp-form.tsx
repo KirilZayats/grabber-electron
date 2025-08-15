@@ -1,5 +1,5 @@
 import { Formik, Form } from "formik";
-import { useState } from "react";
+import { useMemo } from "react";
 import { object, string, number } from "yup";
 import { Button, IconButton } from "@chakra-ui/react";
 import { FormField } from "./form-field";
@@ -13,19 +13,49 @@ const ftpConfigSchema = object({
   port: number().required().min(21).max(65535),
   username: string().required(),
   password: string().required(),
-  localDirectory: string().required(),
+  localDirectory: string()
+    .required()
+    .test("is-valid", "Invalid local directory", (value) => {
+      window.electron.validateLocalDirectory(value);
+      return new Promise((resolve) => {
+        const unsub = window.electron.validateLocalDirectoryResult((result) => {
+          unsub();
+          resolve(result.exists);
+        });
+      });
+    }),
   remoteDirectory: string().required(),
 });
 
 const FtpForm = () => {
-  const [ftpConfig, setFtpConfig] = useState<FtpConfig>({
-    host: "",
-    port: 21,
-    username: "",
-    password: "",
-    localDirectory: "",
-    remoteDirectory: "",
-  });
+  const ftpConfig = useMemo<FtpConfig>(
+    () => ({
+      host: "",
+      port: 21,
+      username: "",
+      password: "",
+      localDirectory: "",
+      remoteDirectory: "",
+    }),
+    []
+  );
+
+  const startWatching = (ftpConfig: FtpConfig) => {
+    window.electron.startWatching(ftpConfig);
+  };
+
+  const handleLocalDirSelect = (
+    setValues: (
+      values: React.SetStateAction<FtpConfig>,
+      shouldValidate?: boolean
+    ) => void
+  ) => {
+    window.electron.selectLocalDirectory();
+    const unsub = window.electron.selectLocalDirectoryResult((dir) => {
+      setValues((values) => ({ ...values, localDirectory: dir }));
+      unsub();
+    });
+  };
 
   return (
     <Formik
@@ -35,8 +65,8 @@ const FtpForm = () => {
         window.electron.testFtpConnection(values);
         const unsub = window.electron.testFtpConnectionResult((result) => {
           if (result) {
-            setFtpConfig(values);
             setSubmitting(true);
+            startWatching(values);
             toaster.create({
               title: "FTP connection successful",
               description: "FTP connection successful",
@@ -54,7 +84,7 @@ const FtpForm = () => {
         });
       }}
     >
-      {({ isSubmitting, setSubmitting }) => (
+      {({ isSubmitting, setSubmitting, setValues }) => (
         <Form className={styles._}>
           <div className={styles._rowFields}>
             <FormField
@@ -93,7 +123,12 @@ const FtpForm = () => {
             name="localDirectory"
             placeholder="Enter local directory"
             endElement={
-              <IconButton aria-label="Browse local" variant="ghost" size="sm">
+              <IconButton
+                aria-label="Browse local"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleLocalDirSelect(setValues)}
+              >
                 <LuFolder />
               </IconButton>
             }
@@ -112,7 +147,10 @@ const FtpForm = () => {
           <div className={clsx(styles._rowFields, styles._rowButtons)}>
             <Button
               type="button"
-              onClick={() => setSubmitting(false)}
+              onClick={() => {
+                window.electron.stopWatching();
+                setSubmitting(false);
+              }}
               disabled={!isSubmitting}
             >
               Stop watching
