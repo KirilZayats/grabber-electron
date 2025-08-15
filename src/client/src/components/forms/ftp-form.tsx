@@ -147,7 +147,10 @@ const FtpForm = () => {
           <div className={clsx(styles._rowFields, styles._rowButtons)}>
             <Button
               type="button"
-              onClick={() => setSubmitting(false)}
+              onClick={() => {
+                window.electron.stopWatching();
+                setSubmitting(false);
+              }}
               disabled={!isSubmitting}
             >
               Stop watching

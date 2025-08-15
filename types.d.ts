@@ -17,6 +17,7 @@ interface Log {
 type LogType = "info" | "error" | "warning";
 
 type FileEvent = "created" | "changed" | "removed";
+type WatchEvent = "stopped" | "started";
 type ConnectionEvent = "success" | "error";
 
 type EventScope =
@@ -31,6 +32,10 @@ type EventScope =
   | {
       type: "connection";
       event: ConnectionEvent;
+    }
+  | {
+      type: "watch";
+      event: WatchEvent;
     };
 
 type EventPayloadMapping = {
@@ -42,6 +47,7 @@ type EventPayloadMapping = {
   validateLocalDirectory: string;
   validateLocalDirectoryResult: { path: string; exists: boolean };
   startWatching: FtpConfig;
+  stopWatching: undefined;
 };
 
 type UnsubscribeFunction = () => void;
@@ -62,5 +68,6 @@ interface Window {
       callback: (result: { path: string; exists: boolean }) => void
     ) => UnsubscribeFunction;
     startWatching: (payload: FtpConfig) => void;
+    stopWatching: () => void;
   };
 }

@@ -18,11 +18,16 @@ class WatchDir {
     if (!this.path || !this.onFile) {
       throw new Error("Path and onFile must be set");
     }
+    this.onFile?.(`Watching '${this.path}' started`, "info", {
+      type: "watch",
+      event: "started",
+    });
     watch.createMonitor(this.path, (monitor) => {
       this.monitor = monitor;
       monitor.on("created", (f, stat) => {
-        this.onFile?.(`file '${f}' was created`, "info", {
-          type: stat.isDirectory() ? "directory" : "file",
+        const type = stat.isDirectory() ? "directory" : "file";
+        this.onFile?.(`${type} '${f}' was created`, "info", {
+          type,
           event: "created",
         });
       });
@@ -45,6 +50,10 @@ class WatchDir {
 
   stop() {
     if (this.monitor) {
+      this.onFile?.(`Watching '${this.path}' stopped`, "info", {
+        type: "watch",
+        event: "stopped",
+      });
       this.monitor.stop();
       this.monitor = null;
     }

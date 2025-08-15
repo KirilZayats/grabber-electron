@@ -72,4 +72,8 @@ app.on("ready", () => {
       generateLog(mainWindow.webContents, message, type, scope);
     });
   });
+
+  ipcMainOn("stopWatching", async () => {
+    watchDir.stop();
+  });
 });
