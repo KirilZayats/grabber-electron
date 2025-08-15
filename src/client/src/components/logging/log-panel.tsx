@@ -12,11 +12,11 @@ const LogPanel = () => {
       <Table.Root size="sm" stickyHeader>
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader width="fit-content">
-              Timestamp
+            <Table.ColumnHeader width="200px">Timestamp</Table.ColumnHeader>
+            <Table.ColumnHeader width="40px" textAlign="start">
+              Type
             </Table.ColumnHeader>
-            <Table.ColumnHeader width="fit-content">Type</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="center" width="fit-content">
+            <Table.ColumnHeader textAlign="start" width="fit-content">
               Message
             </Table.ColumnHeader>
           </Table.Row>
@@ -24,8 +24,8 @@ const LogPanel = () => {
         <Table.Body>
           {logs.map((item) => (
             <Table.Row key={item.id}>
-              <Table.Cell width="fit-content">{item.timestamp}</Table.Cell>
-              <Table.Cell width="fit-content">
+              <Table.Cell>{item.timestamp}</Table.Cell>
+              <Table.Cell textAlign="start" width="fit-content">
                 <LogBadge type={item.type as LogType} />
               </Table.Cell>
               <Table.Cell textAlign="start">{item.message}</Table.Cell>
