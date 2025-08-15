@@ -13,7 +13,17 @@ const ftpConfigSchema = object({
   port: number().required().min(21).max(65535),
   username: string().required(),
   password: string().required(),
-  localDirectory: string().required(),
+  localDirectory: string()
+    .required()
+    .test("is-valid", "Invalid local directory", (value) => {
+      window.electron.validateLocalDirectory(value);
+      return new Promise((resolve) => {
+        const unsub = window.electron.validateLocalDirectoryResult((result) => {
+          unsub();
+          resolve(result.exists);
+        });
+      });
+    }),
   remoteDirectory: string().required(),
 });
 
@@ -27,11 +37,25 @@ const FtpForm = () => {
     remoteDirectory: "",
   });
 
+  const handleLocalDirSelect = (
+    setValues: (
+      values: React.SetStateAction<FtpConfig>,
+      shouldValidate?: boolean
+    ) => void
+  ) => {
+    window.electron.selectLocalDirectory();
+    const unsub = window.electron.selectLocalDirectoryResult((dir) => {
+      setValues((values) => ({ ...values, localDirectory: dir }));
+      unsub();
+    });
+  };
+
   return (
     <Formik
       initialValues={ftpConfig}
       validationSchema={ftpConfigSchema}
       onSubmit={(values, { setSubmitting }) => {
+        console.log(values);
         window.electron.testFtpConnection(values);
         const unsub = window.electron.testFtpConnectionResult((result) => {
           if (result) {
@@ -54,7 +78,7 @@ const FtpForm = () => {
         });
       }}
     >
-      {({ isSubmitting, setSubmitting }) => (
+      {({ isSubmitting, setSubmitting, setValues }) => (
         <Form className={styles._}>
           <div className={styles._rowFields}>
             <FormField
@@ -93,7 +117,12 @@ const FtpForm = () => {
             name="localDirectory"
             placeholder="Enter local directory"
             endElement={
-              <IconButton aria-label="Browse local" variant="ghost" size="sm">
+              <IconButton
+                aria-label="Browse local"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleLocalDirSelect(setValues)}
+              >
                 <LuFolder />
               </IconButton>
             }

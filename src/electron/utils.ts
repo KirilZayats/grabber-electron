@@ -1,5 +1,5 @@
 import { WebContents } from "electron";
-
+import fs from "fs";
 import { ipcMain } from "electron";
 
 export function isDev(): boolean {
@@ -31,3 +31,8 @@ export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(
 ) {
   webContents.send(key, payload);
 }
+
+export const validateLocalDirectory = async (path: string) => {
+  const exists = await fs.promises.access(path).then(() => true).catch(() => false);
+  return { path, exists };
+};

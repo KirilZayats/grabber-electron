@@ -1,7 +1,12 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { getPreloadPath, getUIPath } from "./pathResolver.js";
-import { ipcMainOn, isDev, ipcWebContentsSend } from "./utils.js";
+import {
+  ipcMainOn,
+  isDev,
+  ipcWebContentsSend,
+  validateLocalDirectory,
+} from "./utils.js";
 import { testConnection } from "./ftp.js";
 
 app.on("ready", () => {
@@ -42,5 +47,26 @@ app.on("ready", () => {
       }
     });
     return result;
+  });
+
+  ipcMainOn("selectLocalDirectory", async () => {
+    const dir = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+    });
+    console.log(dir.filePaths[0]);
+    ipcWebContentsSend(
+      "selectLocalDirectoryResult",
+      mainWindow.webContents,
+      dir.filePaths[0]
+    );
+  });
+
+  ipcMainOn("validateLocalDirectory", async (payload: string) => {
+    const result = await validateLocalDirectory(payload);
+    ipcWebContentsSend(
+      "validateLocalDirectoryResult",
+      mainWindow.webContents,
+      result
+    );
   });
 });

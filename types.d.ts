@@ -19,6 +19,10 @@ type EventPayloadMapping = {
   log: Log;
   testFtpConnection: FtpConfig;
   testFtpConnectionResult: boolean;
+  selectLocalDirectory: undefined;
+  selectLocalDirectoryResult: string;
+  validateLocalDirectory: string;
+  validateLocalDirectoryResult: { path: string; exists: boolean };
 };
 
 type UnsubscribeFunction = () => void;
@@ -29,6 +33,14 @@ interface Window {
     testFtpConnection: (payload: FtpConfig) => void;
     testFtpConnectionResult: (
       callback: (result: boolean) => void
+    ) => UnsubscribeFunction;
+    selectLocalDirectory: () => void;
+    selectLocalDirectoryResult: (
+      callback: (result: string) => void
+    ) => UnsubscribeFunction;
+    validateLocalDirectory: (payload: string) => void;
+    validateLocalDirectoryResult: (
+      callback: (result: { path: string; exists: boolean }) => void
     ) => UnsubscribeFunction;
   };
 }
