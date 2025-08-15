@@ -7,6 +7,7 @@ import { LuFolder } from "react-icons/lu";
 import styles from "./ftp-form.module.scss";
 import clsx from "clsx";
 import { toaster } from "@/providers";
+import { FtpDirSelection } from "@/components";
 
 const ftpConfigSchema = object({
   host: string().required(),
@@ -84,7 +85,7 @@ const FtpForm = () => {
         });
       }}
     >
-      {({ isSubmitting, setSubmitting, setValues }) => (
+      {({ isSubmitting, setSubmitting, setValues, values }) => (
         <Form className={styles._}>
           <div className={styles._rowFields}>
             <FormField
@@ -139,9 +140,45 @@ const FtpForm = () => {
             name="remoteDirectory"
             placeholder="Enter remote directory"
             endElement={
-              <IconButton aria-label="Browse remote" variant="ghost" size="sm">
-                <LuFolder />
-              </IconButton>
+              <FtpDirSelection
+                collection={{
+                  id: "Root",
+                  name: "",
+                  children: [
+                    {
+                      id: "/",
+                      name: "/",
+                      children: [],
+                    },
+                  ],
+                }}
+                selectedNodeId={values.remoteDirectory}
+                setSelectedNodeId={(nodeId) => {
+                  setValues((values) => ({
+                    ...values,
+                    remoteDirectory: nodeId,
+                  }));
+                }}
+                loadChildren={(details) => {
+                  const value = details.node.id;
+                  return new Promise((resolve) => {
+                    window.electron.getFtpTree({ ...values, path: value });
+                    const unsub = window.electron.getFtpTreeResult((result) => {
+                      resolve(result);
+                      unsub();
+                    });
+                  });
+                }}
+                trigger={
+                  <IconButton
+                    aria-label="Browse remote"
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <LuFolder />
+                  </IconButton>
+                }
+              />
             }
           />
           <div className={clsx(styles._rowFields, styles._rowButtons)}>

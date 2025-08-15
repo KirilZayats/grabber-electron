@@ -1,26 +1,21 @@
 const electron = require("electron");
 
 electron.contextBridge.exposeInMainWorld("electron", {
-  subscribeLogs: (callback: (log: Log) => void) => {
-    return ipcOn("log", callback);
-  },
+  subscribeLogs: (callback) => ipcOn("log", callback),
   testFtpConnection: (payload) => ipcSend("testFtpConnection", payload),
-  testFtpConnectionResult: (callback: (result: boolean) => void) => {
-    return ipcOn("testFtpConnectionResult", callback);
-  },
+  testFtpConnectionResult: (callback) =>
+    ipcOn("testFtpConnectionResult", callback),
   selectLocalDirectory: () => ipcSend("selectLocalDirectory", undefined),
-  selectLocalDirectoryResult: (callback: (result: string) => void) => {
-    return ipcOn("selectLocalDirectoryResult", callback);
-  },
+  selectLocalDirectoryResult: (callback) =>
+    ipcOn("selectLocalDirectoryResult", callback),
   validateLocalDirectory: (payload) =>
     ipcSend("validateLocalDirectory", payload),
-  validateLocalDirectoryResult: (
-    callback: (result: { path: string; exists: boolean }) => void
-  ) => {
-    return ipcOn("validateLocalDirectoryResult", callback);
-  },
+  validateLocalDirectoryResult: (callback) =>
+    ipcOn("validateLocalDirectoryResult", callback),
   startWatching: (payload) => ipcSend("startWatching", payload),
   stopWatching: () => ipcSend("stopWatching", undefined),
+  getFtpTree: (payload) => ipcSend("getFtpTree", payload),
+  getFtpTreeResult: (callback) => ipcOn("getFtpTreeResult", callback),
 } satisfies Window["electron"]);
 
 function ipcInvoke<Key extends keyof EventPayloadMapping>(

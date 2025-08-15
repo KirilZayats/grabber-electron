@@ -6,6 +6,12 @@ interface FtpConfig {
   localDirectory: string;
   remoteDirectory: string;
 }
+
+interface DirectoryNode {
+  id: string;
+  name: string;
+  children: DirectoryNode[];
+}
 interface Log {
   id: string;
   timestamp: string;
@@ -48,6 +54,8 @@ type EventPayloadMapping = {
   validateLocalDirectoryResult: { path: string; exists: boolean };
   startWatching: FtpConfig;
   stopWatching: undefined;
+  getFtpTree: FtpConfig;
+  getFtpTreeResult: DirectoryNode[];
 };
 
 type UnsubscribeFunction = () => void;
@@ -69,5 +77,9 @@ interface Window {
     ) => UnsubscribeFunction;
     startWatching: (payload: FtpConfig) => void;
     stopWatching: () => void;
+    getFtpTree: (payload: FtpConfig & { path?: string }) => void;
+    getFtpTreeResult: (
+      callback: (result: DirectoryNode[]) => void
+    ) => UnsubscribeFunction;
   };
 }
