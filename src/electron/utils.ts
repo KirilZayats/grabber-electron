@@ -55,3 +55,15 @@ export const generateLog = (
     scope,
   });
 };
+
+export const progressStats = (
+  fileName: string,
+  transfer: number,
+  total: number
+) => {
+  const progress = (transfer / total) * 100;
+  return {
+    fileName,
+    progress,
+  };
+};

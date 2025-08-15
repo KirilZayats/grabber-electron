@@ -7,6 +7,13 @@ interface FtpConfig {
   remoteDirectory: string;
 }
 
+type ParametersExceptFirst<F> = F extends (
+  first: unknown,
+  ...rest: infer R
+) => unknown
+  ? R
+  : never;
+
 interface DirectoryNode {
   id: string;
   name: string;
@@ -22,7 +29,7 @@ interface Log {
 
 type LogType = "info" | "error" | "warning";
 
-type FileEvent = "created" | "changed" | "removed";
+type FileEvent = "created" | "changed" | "removed" | "sent" | "deleted";
 type WatchEvent = "stopped" | "started";
 type ConnectionEvent = "success" | "error";
 

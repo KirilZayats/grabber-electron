@@ -1,4 +1,5 @@
 import watch from "watch";
+import { FtpClient } from "./ftp.js";
 
 class WatchDir {
   private path: string | null = null;
@@ -11,6 +12,7 @@ class WatchDir {
 
   start(
     path: string,
+    ftpClient: FtpClient,
     onFile: (message: string, type: LogType, scope: EventScope) => void
   ) {
     this.path = path;
@@ -30,6 +32,7 @@ class WatchDir {
           type,
           event: "created",
         });
+        ftpClient.sendFile(f);
       });
       monitor.on("changed", (f, stat) => {
         const type = stat.isDirectory() ? "directory" : "file";
@@ -37,6 +40,7 @@ class WatchDir {
           type,
           event: "changed",
         });
+        ftpClient.sendFile(f);
       });
       monitor.on("removed", (f, stat) => {
         const type = stat.isDirectory() ? "directory" : "file";
@@ -44,6 +48,7 @@ class WatchDir {
           type,
           event: "removed",
         });
+        ftpClient.deleteFile(f);
       });
     });
   }

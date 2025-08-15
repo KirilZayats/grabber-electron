@@ -17,6 +17,8 @@ const eventScopeToColor = {
   removed: "red",
   stopped: "red",
   started: "blue",
+  sent: "green",
+  deleted: "red",
 } as const;
 
 const LogPanel = () => {
