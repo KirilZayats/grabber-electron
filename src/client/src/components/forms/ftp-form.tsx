@@ -6,6 +6,7 @@ import { FormField } from "./form-field";
 import { LuFolder } from "react-icons/lu";
 import styles from "./ftp-form.module.scss";
 import clsx from "clsx";
+import { toaster } from "@/providers";
 
 const ftpConfigSchema = object({
   host: string().required(),
@@ -31,11 +32,29 @@ const FtpForm = () => {
       initialValues={ftpConfig}
       validationSchema={ftpConfigSchema}
       onSubmit={(values, { setSubmitting }) => {
-        setFtpConfig(values);
-        setSubmitting(false);
+        window.electron.testFtpConnection(values);
+        const unsub = window.electron.testFtpConnectionResult((result) => {
+          if (result) {
+            setFtpConfig(values);
+            setSubmitting(true);
+            toaster.create({
+              title: "FTP connection successful",
+              description: "FTP connection successful",
+              type: "success",
+            });
+          } else {
+            setSubmitting(false);
+            toaster.create({
+              title: "FTP connection failed",
+              description: "FTP connection failed",
+              type: "error",
+            });
+          }
+          unsub();
+        });
       }}
     >
-      {({ isSubmitting }) => (
+      {({ isSubmitting, setSubmitting }) => (
         <Form className={styles._}>
           <div className={styles._rowFields}>
             <FormField
@@ -91,7 +110,11 @@ const FtpForm = () => {
             }
           />
           <div className={clsx(styles._rowFields, styles._rowButtons)}>
-            <Button type="submit" disabled={!isSubmitting}>
+            <Button
+              type="button"
+              onClick={() => setSubmitting(false)}
+              disabled={!isSubmitting}
+            >
               Stop watching
             </Button>
             <Button type="submit" disabled={isSubmitting}>

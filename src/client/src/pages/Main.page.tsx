@@ -5,7 +5,6 @@ const MainPage = () => {
   return (
     <div className={styles._}>
       <FtpForm />
-
       <LogPanel />
     </div>
   );
