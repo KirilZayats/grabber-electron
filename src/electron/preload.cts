@@ -19,6 +19,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
   ) => {
     return ipcOn("validateLocalDirectoryResult", callback);
   },
+  startWatching: (payload) => ipcSend("startWatching", payload),
 } satisfies Window["electron"]);
 
 function ipcInvoke<Key extends keyof EventPayloadMapping>(

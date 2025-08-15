@@ -1,13 +1,14 @@
 import { app, BrowserWindow, dialog } from "electron";
-import { v4 as uuidv4 } from "uuid";
 import { getPreloadPath, getUIPath } from "./pathResolver.js";
 import {
   ipcMainOn,
   isDev,
   ipcWebContentsSend,
   validateLocalDirectory,
+  generateLog,
 } from "./utils.js";
 import { testConnection } from "./ftp.js";
+import WatchDir from "./watchDir.js";
 
 app.on("ready", () => {
   const mainWindow = new BrowserWindow({
@@ -21,6 +22,7 @@ app.on("ready", () => {
   } else {
     mainWindow.loadFile(getUIPath());
   }
+  const watchDir = new WatchDir();
 
   ipcMainOn("testFtpConnection", async (config: FtpConfig) => {
     const result = testConnection(config);
@@ -30,21 +32,17 @@ app.on("ready", () => {
         mainWindow.webContents,
         result
       );
-      if (result) {
-        ipcWebContentsSend("log", mainWindow.webContents, {
-          id: uuidv4(),
-          timestamp: new Date().toISOString(),
-          type: "info",
-          message: "FTP connection successful",
-        });
-      } else {
-        ipcWebContentsSend("log", mainWindow.webContents, {
-          id: uuidv4(),
-          timestamp: new Date().toISOString(),
-          type: "error",
-          message: "FTP connection failed",
-        });
-      }
+
+      const event = result ? "success" : "error";
+      generateLog(
+        mainWindow.webContents,
+        result ? "FTP connection successful" : "FTP connection failed",
+        result ? "info" : "error",
+        {
+          type: "connection",
+          event,
+        }
+      );
     });
     return result;
   });
@@ -53,7 +51,6 @@ app.on("ready", () => {
     const dir = await dialog.showOpenDialog({
       properties: ["openDirectory"],
     });
-    console.log(dir.filePaths[0]);
     ipcWebContentsSend(
       "selectLocalDirectoryResult",
       mainWindow.webContents,
@@ -68,5 +65,11 @@ app.on("ready", () => {
       mainWindow.webContents,
       result
     );
+  });
+
+  ipcMainOn("startWatching", async (payload: FtpConfig) => {
+    watchDir.start(payload.localDirectory, (message, type, scope) => {
+      generateLog(mainWindow.webContents, message, type, scope);
+    });
   });
 });

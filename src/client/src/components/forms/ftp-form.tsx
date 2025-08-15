@@ -1,5 +1,5 @@
 import { Formik, Form } from "formik";
-import { useState } from "react";
+import { useMemo } from "react";
 import { object, string, number } from "yup";
 import { Button, IconButton } from "@chakra-ui/react";
 import { FormField } from "./form-field";
@@ -28,14 +28,21 @@ const ftpConfigSchema = object({
 });
 
 const FtpForm = () => {
-  const [ftpConfig, setFtpConfig] = useState<FtpConfig>({
-    host: "",
-    port: 21,
-    username: "",
-    password: "",
-    localDirectory: "",
-    remoteDirectory: "",
-  });
+  const ftpConfig = useMemo<FtpConfig>(
+    () => ({
+      host: "",
+      port: 21,
+      username: "",
+      password: "",
+      localDirectory: "",
+      remoteDirectory: "",
+    }),
+    []
+  );
+
+  const startWatching = (ftpConfig: FtpConfig) => {
+    window.electron.startWatching(ftpConfig);
+  };
 
   const handleLocalDirSelect = (
     setValues: (
@@ -55,12 +62,11 @@ const FtpForm = () => {
       initialValues={ftpConfig}
       validationSchema={ftpConfigSchema}
       onSubmit={(values, { setSubmitting }) => {
-        console.log(values);
         window.electron.testFtpConnection(values);
         const unsub = window.electron.testFtpConnectionResult((result) => {
           if (result) {
-            setFtpConfig(values);
             setSubmitting(true);
+            startWatching(values);
             toaster.create({
               title: "FTP connection successful",
               description: "FTP connection successful",
