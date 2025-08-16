@@ -16,6 +16,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
   stopWatching: () => ipcSend("stopWatching", undefined),
   getFtpTree: (payload) => ipcSend("getFtpTree", payload),
   getFtpTreeResult: (callback) => ipcOn("getFtpTreeResult", callback),
+  subscribeProgress: (callback) => ipcOn("subscribeProgress", callback),
 } satisfies Window["electron"]);
 
 function ipcInvoke<Key extends keyof EventPayloadMapping>(

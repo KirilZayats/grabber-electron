@@ -1,27 +1,28 @@
 import { Client } from "basic-ftp";
+import fs from "fs";
 import path from "path";
 import { generateLog, progressStats } from "./utils.js";
 
 type Logger = (...args: ParametersExceptFirst<typeof generateLog>) => void;
+type Progress = (...args: ParametersExceptFirst<typeof progressStats>) => void;
 
 export class FtpClient {
   private readonly client: Client;
   private config: FtpConfig;
   private readonly logger?: Logger;
-  private readonly onProgress?: typeof progressStats;
+  private readonly onProgress?: Progress;
 
-  constructor(
-    config: FtpConfig,
-    logger?: Logger,
-    onProgress?: typeof progressStats
-  ) {
+  constructor(config: FtpConfig, logger?: Logger, onProgress?: Progress) {
     this.config = config;
     this.client = new Client();
     this.client.ftp.verbose = false;
     this.logger = logger;
     this.onProgress = onProgress;
     this.client.trackProgress((info) => {
-      this.onProgress?.(info.name, info.bytes, info.bytesOverall);
+      if (info.type !== "list") {
+        const fileSizeInBytes = this.getFileSize(info.name);
+        this.onProgress?.(info.name, info.bytes, fileSizeInBytes);
+      }
     });
   }
 
@@ -39,6 +40,20 @@ export class FtpClient {
     this.client.close();
   }
 
+  private getFileSize(remotePath: string) {
+    const localPath = path.join(
+      this.config.localDirectory,
+      remotePath.replace(this.config.remoteDirectory, "")
+    );
+    console.log(this.config.remoteDirectory);
+    console.log(localPath);
+    if (!fs.existsSync(localPath)) {
+      return 0;
+    }
+    const stats = fs.statSync(localPath);
+    return stats.size;
+  }
+
   async testConnection() {
     try {
       await this.connect();
@@ -50,19 +65,17 @@ export class FtpClient {
     }
   }
 
-  async getFtpTree(path: string) {
+  async getFtpTree(initPath: string) {
     try {
       await this.connect();
 
-      const startPath = path || "/";
-
-      const items = await this.client.list(startPath);
+      const items = await this.client.list(initPath);
 
       return items
         .map((item) =>
           item.isDirectory && !item.name.startsWith(".")
             ? {
-                id: `${startPath}/${item.name}`,
+                id: path.join(initPath, item.name),
                 name: item.name,
                 children: [],
               }
@@ -90,8 +103,8 @@ export class FtpClient {
       );
 
       await this.client.uploadFrom(localPath, remoteFile);
-    } catch {
-      this.logger?.("Error sending file", "error", {
+    } catch (error) {
+      this.logger?.(`Error sending file: ${error}`, "error", {
         type: "file",
         event: "sent",
       });

@@ -27,6 +27,9 @@ app.on("ready", () => {
   const logger = (message: string, type: LogType, scope: EventScope) => {
     generateLog(mainWindow.webContents, message, type, scope);
   };
+  const progress = (fileName: string, transfer: number, total: number) => {
+    progressStats(mainWindow.webContents, fileName, transfer, total);
+  };
 
   ipcMainOn("testFtpConnection", async (config: FtpConfig) => {
     const ftpClient = new FtpClient(config);
@@ -73,7 +76,7 @@ app.on("ready", () => {
   });
 
   ipcMainOn("startWatching", async (payload: FtpConfig) => {
-    const ftpClient = new FtpClient(payload, logger, progressStats);
+    const ftpClient = new FtpClient(payload, logger, progress);
     watchDir.start(payload.localDirectory, ftpClient, logger);
   });
 
