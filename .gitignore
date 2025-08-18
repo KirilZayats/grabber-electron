@@ -141,5 +141,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 
+.vs
 .husky
 package-lock.json

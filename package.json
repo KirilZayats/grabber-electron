@@ -21,6 +21,7 @@
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
     "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
     "husky": "husky init && echo npm run pre-commit > .husky/pre-commit && echo npx --no -- commitlint --edit $1 > .husky/commit-msg",
+    "postinstall": "npm run husky",
     "lint": "eslint .",
     "preview": "vite preview",
     "prepare": "husky"

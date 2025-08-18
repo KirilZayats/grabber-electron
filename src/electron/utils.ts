@@ -55,3 +55,17 @@ export const generateLog = (
     scope,
   });
 };
+
+export const progressStats = (
+  webContents: WebContents,
+  fileName: string,
+  transfer: number,
+  total: number
+) => {
+  const progress = +((transfer / total) * 100).toFixed(2);
+
+  ipcWebContentsSend("subscribeProgress", webContents, {
+    fileName,
+    progress,
+  });
+};

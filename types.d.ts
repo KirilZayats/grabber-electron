@@ -7,11 +7,22 @@ interface FtpConfig {
   remoteDirectory: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ParametersExceptFirst<F> = F extends (first: any, ...rest: infer R) => any
+  ? R
+  : never;
+
 interface DirectoryNode {
   id: string;
   name: string;
   children: DirectoryNode[];
 }
+
+interface FilesLoadProgress {
+  fileName: string;
+  progress: number;
+}
+
 interface Log {
   id: string;
   timestamp: string;
@@ -22,7 +33,7 @@ interface Log {
 
 type LogType = "info" | "error" | "warning";
 
-type FileEvent = "created" | "changed" | "removed";
+type FileEvent = "created" | "changed" | "removed" | "sent" | "deleted";
 type WatchEvent = "stopped" | "started";
 type ConnectionEvent = "success" | "error";
 
@@ -56,6 +67,7 @@ type EventPayloadMapping = {
   stopWatching: undefined;
   getFtpTree: FtpConfig;
   getFtpTreeResult: DirectoryNode[];
+  subscribeProgress: FilesLoadProgress;
 };
 
 type UnsubscribeFunction = () => void;
@@ -80,6 +92,9 @@ interface Window {
     getFtpTree: (payload: FtpConfig & { path?: string }) => void;
     getFtpTreeResult: (
       callback: (result: DirectoryNode[]) => void
+    ) => UnsubscribeFunction;
+    subscribeProgress: (
+      callback: (progress: FilesLoadProgress) => void
     ) => UnsubscribeFunction;
   };
 }

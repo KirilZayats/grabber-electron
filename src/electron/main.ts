@@ -6,8 +6,9 @@ import {
   ipcWebContentsSend,
   validateLocalDirectory,
   generateLog,
+  progressStats,
 } from "./utils.js";
-import { getFtpTree, testConnection } from "./ftp.js";
+import { FtpClient } from "./ftp.js";
 import WatchDir from "./watchDir.js";
 
 app.on("ready", () => {
@@ -23,9 +24,16 @@ app.on("ready", () => {
     mainWindow.loadFile(getUIPath());
   }
   const watchDir = new WatchDir();
+  const logger = (message: string, type: LogType, scope: EventScope) => {
+    generateLog(mainWindow.webContents, message, type, scope);
+  };
+  const progress = (fileName: string, transfer: number, total: number) => {
+    progressStats(mainWindow.webContents, fileName, transfer, total);
+  };
 
   ipcMainOn("testFtpConnection", async (config: FtpConfig) => {
-    const result = testConnection(config);
+    const ftpClient = new FtpClient(config);
+    const result = ftpClient.testConnection();
     result.then((result) => {
       ipcWebContentsSend(
         "testFtpConnectionResult",
@@ -68,9 +76,8 @@ app.on("ready", () => {
   });
 
   ipcMainOn("startWatching", async (payload: FtpConfig) => {
-    watchDir.start(payload.localDirectory, (message, type, scope) => {
-      generateLog(mainWindow.webContents, message, type, scope);
-    });
+    const ftpClient = new FtpClient(payload, logger, progress);
+    watchDir.start(payload.localDirectory, ftpClient, logger);
   });
 
   ipcMainOn("stopWatching", async () => {
@@ -78,7 +85,8 @@ app.on("ready", () => {
   });
 
   ipcMainOn("getFtpTree", async (payload: FtpConfig & { path?: string }) => {
-    const result = await getFtpTree(payload);
+    const ftpClient = new FtpClient(payload, logger);
+    const result = await ftpClient.getFtpTree(payload.path || "");
     ipcWebContentsSend("getFtpTreeResult", mainWindow.webContents, result);
   });
 });
