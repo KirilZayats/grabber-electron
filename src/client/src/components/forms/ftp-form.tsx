@@ -25,7 +25,22 @@ const ftpConfigSchema = object({
         });
       });
     }),
-  remoteDirectory: string().required(),
+  remoteDirectory: string()
+    .required()
+    .test("is-valid", "Invalid remote directory", (value, context) => {
+      window.electron.validateRemoteDirectory({
+        ...context.parent,
+        remoteDirectory: value,
+      });
+      return new Promise((resolve) => {
+        const unsub = window.electron.validateRemoteDirectoryResult(
+          (result) => {
+            unsub();
+            resolve(result.exists);
+          }
+        );
+      });
+    }),
 });
 
 const FtpForm = () => {

@@ -76,12 +76,22 @@ app.on("ready", () => {
     );
   });
 
-  ipcMainOn("validateLocalDirectory", async (payload: string) => {
+  ipcMainOn("validateLocalDirectory", async (payload) => {
     const result = await validateLocalDirectory(payload);
     ipcWebContentsSend(
       "validateLocalDirectoryResult",
       mainWindow.webContents,
       result
+    );
+  });
+
+  ipcMainOn("validateRemoteDirectory", async (payload) => {
+    const ftpClient = new FtpClient(payload);
+    const result = await ftpClient.validateRemoteDirectory();
+    ipcWebContentsSend(
+      "validateRemoteDirectoryResult",
+      mainWindow.webContents,
+      { path: payload.remoteDirectory, exists: result }
     );
   });
 
@@ -108,7 +118,11 @@ app.on("ready", () => {
       }
 
       Object.values(data).forEach((log) => {
-        ipcWebContentsSend("log", mainWindow.webContents, Object.values(log)[0] as Log);
+        ipcWebContentsSend(
+          "log",
+          mainWindow.webContents,
+          Object.values(log)[0] as Log
+        );
       });
     });
     return logs;

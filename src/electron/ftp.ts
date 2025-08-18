@@ -53,6 +53,18 @@ export class FtpClient {
     }
   }
 
+  async validateRemoteDirectory() {
+    const client = await this.connect();
+    try {
+      await client.cd(this.config.remoteDirectory);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      this.disconnect(client);
+    }
+  }
+
   async getFtpTree(initPath: string) {
     const client = await this.connect();
     try {
