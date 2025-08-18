@@ -29,19 +29,23 @@ const ftpConfigSchema = object({
 });
 
 const FtpForm = () => {
-  const ftpConfig = useMemo<FtpConfig>(
-    () => ({
+  const ftpConfig = useMemo<FtpConfig>(() => {
+    const ftpConfig = localStorage.getItem("ftpConfig");
+    if (ftpConfig) {
+      return JSON.parse(ftpConfig);
+    }
+    return {
       host: "",
       port: 21,
       username: "",
       password: "",
       localDirectory: "",
       remoteDirectory: "",
-    }),
-    []
-  );
+    };
+  }, []);
 
   const startWatching = (ftpConfig: FtpConfig) => {
+    localStorage.setItem("ftpConfig", JSON.stringify(ftpConfig));
     window.electron.startWatching(ftpConfig);
   };
 

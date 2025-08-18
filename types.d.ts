@@ -68,6 +68,7 @@ type EventPayloadMapping = {
   getFtpTree: FtpConfig;
   getFtpTreeResult: DirectoryNode[];
   subscribeProgress: FilesLoadProgress;
+  getLogs: Logs[];
 };
 
 type UnsubscribeFunction = () => void;
@@ -96,5 +97,6 @@ interface Window {
     subscribeProgress: (
       callback: (progress: FilesLoadProgress) => void
     ) => UnsubscribeFunction;
+    getLogs: () => Promise<Log[]>;
   };
 }

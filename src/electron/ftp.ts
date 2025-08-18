@@ -100,6 +100,8 @@ export class FtpClient {
         localPath.replace(this.config.localDirectory, "")
       );
 
+      console.log(localPath, remoteFile);
+
       await this.client.uploadFrom(localPath, remoteFile);
     } catch (error) {
       this.logger?.(`Error sending file: ${error}`, "error", {
