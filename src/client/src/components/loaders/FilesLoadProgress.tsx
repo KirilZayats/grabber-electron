@@ -2,7 +2,15 @@ import { Progress, For, HStack, Box } from "@chakra-ui/react";
 
 const FilesLoadProgress = (props: { progress: FilesLoadProgress[] }) => {
   return (
-    <Box borderTop="1px solid" borderColor="border" maxW="100%" p="2rem 1rem">
+    <Box
+      borderTop="1px solid"
+      borderColor="border"
+      maxW="100%"
+      maxH="80px"
+      h="80px"
+      overflow="auto"
+      p=".1rem 1rem"
+    >
       <For each={props.progress}>
         {(item) => (
           <Progress.Root

@@ -47,13 +47,15 @@ export const generateLog = (
   type: LogType,
   scope: EventScope
 ) => {
-  ipcWebContentsSend("log", webContents, {
+  const log = {
     id: uuidv4(),
     timestamp: new Date().toISOString(),
     type,
     message,
     scope,
-  });
+  };
+  ipcWebContentsSend("log", webContents, log);
+  return log;
 };
 
 export const progressStats = (

@@ -64,7 +64,7 @@ const LogPanel = () => {
         }}
       >
         <Table.Header>
-          <Table.Row>
+          <Table.Row zIndex={2}>
             <Table.ColumnHeader width="180px" data-sticky="end" left="0">
               Timestamp
             </Table.ColumnHeader>

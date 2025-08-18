@@ -26,29 +26,35 @@ class WatchDir {
     });
     watch.createMonitor(this.path, (monitor) => {
       this.monitor = monitor;
-      monitor.on("created", (f, stat) => {
+      monitor.on("created", async (f, stat) => {
+        if (stat.isFile()) {
+          await ftpClient.sendFile(f);
+        } else {
+          await ftpClient.createDirectory(f);
+        }
         const type = stat.isDirectory() ? "directory" : "file";
         this.onFile?.(`${type} '${f}' was created`, "info", {
           type,
           event: "created",
         });
-        ftpClient.sendFile(f);
       });
-      monitor.on("changed", (f, stat) => {
+      monitor.on("changed", async (f, stat) => {
         const type = stat.isDirectory() ? "directory" : "file";
         this.onFile?.(`${type} '${f}' was changed`, "info", {
           type,
           event: "changed",
         });
-        ftpClient.sendFile(f);
+
+        await ftpClient.sendFile(f);
       });
-      monitor.on("removed", (f, stat) => {
+      monitor.on("removed", async (f, stat) => {
         const type = stat.isDirectory() ? "directory" : "file";
         this.onFile?.(`${type} '${f}' was removed`, "info", {
           type,
           event: "removed",
         });
-        ftpClient.deleteFile(f);
+        if (stat.isFile()) await ftpClient.removeFile(f);
+        else await ftpClient.removeDirectory(f);
       });
     });
   }
