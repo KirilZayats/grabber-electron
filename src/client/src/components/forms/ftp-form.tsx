@@ -94,6 +94,7 @@ const FtpForm = () => {
               name="host"
               placeholder="Enter host"
               startElement="ftp://"
+              disabled={isSubmitting}
             />
 
             <FormField
@@ -101,10 +102,12 @@ const FtpForm = () => {
               type="number"
               name="port"
               placeholder="Enter port"
+              disabled={isSubmitting}
             />
           </div>
           <div className={styles._rowFields}>
             <FormField
+              disabled={isSubmitting}
               label="Username"
               type="text"
               name="username"
@@ -112,6 +115,7 @@ const FtpForm = () => {
             />
 
             <FormField
+              disabled={isSubmitting}
               label="Password"
               type="password"
               name="password"
@@ -123,12 +127,14 @@ const FtpForm = () => {
             type="text"
             name="localDirectory"
             placeholder="Enter local directory"
+            disabled={isSubmitting}
             endElement={
               <IconButton
                 aria-label="Browse local"
                 variant="ghost"
                 size="sm"
                 onClick={() => handleLocalDirSelect(setValues)}
+                disabled={isSubmitting}
               >
                 <LuFolder />
               </IconButton>
@@ -139,6 +145,7 @@ const FtpForm = () => {
             type="text"
             name="remoteDirectory"
             placeholder="Enter remote directory"
+            disabled={isSubmitting}
             endElement={
               <FtpDirSelection
                 collection={{
@@ -173,6 +180,7 @@ const FtpForm = () => {
                   <IconButton
                     aria-label="Browse remote"
                     variant="ghost"
+                    disabled={isSubmitting}
                     size="sm"
                   >
                     <LuFolder />
