@@ -45,8 +45,6 @@ export class FtpClient {
       this.config.localDirectory,
       remotePath.replace(this.config.remoteDirectory, "")
     );
-    console.log(this.config.remoteDirectory);
-    console.log(localPath);
     if (!fs.existsSync(localPath)) {
       return 0;
     }
