@@ -121,8 +121,8 @@ export class FtpClient {
         localPath.replace(this.config.localDirectory, "")
       );
       await this.client.remove(remoteFile);
-    } catch {
-      this.logger?.("Error deleting file", "error", {
+    } catch (error) {
+      this.logger?.(`Error deleting file: ${error}`, "error", {
         type: "file",
         event: "deleted",
       });
