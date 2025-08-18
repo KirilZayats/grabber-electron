@@ -34,13 +34,7 @@ export class FtpClient {
     this.client.close();
   }
 
-  private getFileSize(remotePath: string) {
-    console.log(remotePath);
-    const localPath = path.join(
-      this.config.localDirectory,
-      remotePath.replace(this.config.remoteDirectory, "")
-    );
-    console.log(localPath);
+  private getFileSize(localPath: string) {
     if (!fs.existsSync(localPath)) {
       return 0;
     }
@@ -90,15 +84,19 @@ export class FtpClient {
   async sendFile(localPath: string) {
     try {
       await this.connect();
-      this.client.trackProgress((info) => {
-        this.onProgress?.(info.name, info.bytes, info.bytesOverall);
-      });
 
+      this.client.trackProgress((info) => {
+        this.onProgress?.(info.name, info.bytes, this.getFileSize(localPath));
+      });
       const subtrFilename = localPath.replace(this.config.localDirectory, "");
       const dirs = path.dirname(subtrFilename);
       await this.client.ensureDir(path.join(this.config.remoteDirectory, dirs));
 
-      await this.client.uploadFrom(localPath, path.basename(subtrFilename));
+      await this.client.cd(this.config.remoteDirectory);
+      await this.client.uploadFrom(
+        localPath,
+        path.join(this.config.remoteDirectory, subtrFilename)
+      );
     } catch (error) {
       this.logger?.(`Error sending file: ${error}`, "error", {
         type: "file",
@@ -134,10 +132,17 @@ export class FtpClient {
       await this.connect();
 
       this.client.trackProgress((info) => {
-        this.onProgress?.(info.name, info.bytes, info.bytesOverall);
+        this.onProgress?.(
+          info.name,
+          info.bytes,
+          this.getFileSize(path.join(localPath, info.name))
+        );
       });
-      await this.client.ensureDir(localPath);
-      await this.client.uploadFromDir(localPath);
+      const subtrFilename = localPath.replace(this.config.localDirectory, "");
+      const remoteDir = path.dirname(subtrFilename);
+      await this.client.ensureDir(remoteDir);
+      await this.client.cd(this.config.remoteDirectory);
+      await this.client.uploadFromDir(localPath, remoteDir);
     } catch (error) {
       this.logger?.(`Error creating directory: ${error}`, "error", {
         type: "directory",
