@@ -6,13 +6,17 @@ export const useLogs = () => {
   useEffect(() => {
     window.electron.getLogs();
     const unsub = window.electron.subscribeLogs((log) => {
-      setLogs((prev) =>
-        [...prev, log].sort(
-          (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        )
-      );
+      setLogs((prev) => {
+        if (!prev.find(({ id }) => id === log.id)) {
+          return [...prev, log].sort(
+            (a, b) =>
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          );
+        }
+        return prev;
+      });
     });
+
     return unsub;
   }, []);
 
