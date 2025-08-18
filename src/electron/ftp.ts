@@ -17,6 +17,18 @@ export class FtpClient {
     this.onProgress = onProgress;
   }
 
+  static async isServerAvailable(host: string, port: number) {
+    const client = new Client();
+    try {
+      await client.connect(host, port);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      client.close();
+    }
+  }
+
   async connect() {
     const client = new Client();
     await client.access({

@@ -113,6 +113,7 @@ const FtpForm = () => {
               name="host"
               placeholder="Enter host"
               startElement="ftp://"
+              displayError={false}
               disabled={isSubmitting}
             />
 
@@ -121,6 +122,8 @@ const FtpForm = () => {
               type="number"
               name="port"
               placeholder="Enter port"
+              displayError={false}
+              displayOnlyErrorIcon={true}
               disabled={isSubmitting}
             />
           </div>

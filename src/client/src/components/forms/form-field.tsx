@@ -1,17 +1,22 @@
 import { Field, Input, InputGroup } from "@chakra-ui/react";
 import { useField } from "formik";
+import { LuCircleCheck, LuCircleX } from "react-icons/lu";
 
 const FormField = ({
   placeholder,
   startElement,
   endElement,
   label,
+  displayError = true,
+  displayOnlyErrorIcon = false,
   ...props
 }: {
   label: string;
   startElement?: React.ReactNode | string;
   endElement?: React.ReactNode | string;
   placeholder?: string;
+  displayError?: boolean;
+  displayOnlyErrorIcon?: boolean;
   [key: string]: unknown;
 }) => {
   const [field, meta] = useField(props);
@@ -21,8 +26,18 @@ const FormField = ({
       <InputGroup
         startElement={startElement}
         startElementProps={{ color: "fg.muted" }}
-        endElementProps={{ padding: "0" }}
-        endElement={endElement}
+        endElementProps={{ padding: displayOnlyErrorIcon ? "1ch" : "0" }}
+        endElement={
+          displayOnlyErrorIcon ? (
+            meta.touched && meta.error ? (
+              <LuCircleX />
+            ) : (
+              <LuCircleCheck />
+            )
+          ) : (
+            endElement
+          )
+        }
       >
         <Input
           paddingLeft={startElement ? "7ch" : "1ch"}
@@ -31,7 +46,7 @@ const FormField = ({
           {...props}
         />
       </InputGroup>
-      <Field.ErrorText>{meta.error}</Field.ErrorText>
+      {displayError && <Field.ErrorText>{meta.error}</Field.ErrorText>}
     </Field.Root>
   );
 };
