@@ -11,9 +11,37 @@ import { FtpDirSelection } from "@/components";
 
 const ftpConfigSchema = object({
   host: string().required(),
-  port: number().required().min(21).max(65535),
+  port: number()
+    .required()
+    .min(21)
+    .max(65535)
+    .test("is-valid", "Invalid port", (value, context) => {
+      window.electron.validateHost({ host: context.parent.host, port: value });
+      return new Promise((resolve) => {
+        const unsub = window.electron.validateHostResult((result) => {
+          unsub();
+          resolve(result);
+        });
+      });
+    }),
   username: string().required(),
-  password: string().required(),
+  password: string()
+    .required()
+    .test("is-valid", "Invalid user", (value, context) => {
+      window.electron.testFtpConnection(
+        {
+          ...context.parent,
+          password: value,
+        },
+        true
+      );
+      return new Promise((resolve) => {
+        const unsub = window.electron.testFtpConnectionResult((result) => {
+          unsub();
+          resolve(result);
+        });
+      });
+    }),
   localDirectory: string()
     .required()
     .test("is-valid", "Invalid local directory", (value) => {
@@ -25,7 +53,22 @@ const ftpConfigSchema = object({
         });
       });
     }),
-  remoteDirectory: string().required(),
+  remoteDirectory: string()
+    .required()
+    .test("is-valid", "Invalid remote directory", (value, context) => {
+      window.electron.validateRemoteDirectory({
+        ...context.parent,
+        remoteDirectory: value,
+      });
+      return new Promise((resolve) => {
+        const unsub = window.electron.validateRemoteDirectoryResult(
+          (result) => {
+            unsub();
+            resolve(result.exists);
+          }
+        );
+      });
+    }),
 });
 
 const FtpForm = () => {
@@ -98,6 +141,7 @@ const FtpForm = () => {
               name="host"
               placeholder="Enter host"
               startElement="ftp://"
+              displayError={false}
               disabled={isSubmitting}
             />
 
@@ -106,6 +150,8 @@ const FtpForm = () => {
               type="number"
               name="port"
               placeholder="Enter port"
+              displayError={false}
+              displayOnlyErrorIcon={true}
               disabled={isSubmitting}
             />
           </div>
@@ -116,6 +162,7 @@ const FtpForm = () => {
               type="text"
               name="username"
               placeholder="Enter username"
+              displayError={true}
             />
 
             <FormField
@@ -124,6 +171,8 @@ const FtpForm = () => {
               type="password"
               name="password"
               placeholder="Enter password"
+              displayError={false}
+              displayOnlyErrorIcon={true}
             />
           </div>
           <FormField

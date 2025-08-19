@@ -1,4 +1,5 @@
-import { Progress, For, HStack, Box } from "@chakra-ui/react";
+import { Progress, For, HStack, Box, Text } from "@chakra-ui/react";
+import { Tooltip } from "../tooltip";
 
 const FilesLoadProgress = (props: { progress: FilesLoadProgress[] }) => {
   return (
@@ -22,7 +23,15 @@ const FilesLoadProgress = (props: { progress: FilesLoadProgress[] }) => {
             colorPalette="teal"
           >
             <HStack gap="5">
-              <Progress.Label>{item.fileName}</Progress.Label>
+              <Progress.Label w="5%">
+                <Tooltip
+                  content={item.fileName}
+                  showArrow
+                  positioning={{ placement: "right-end" }}
+                >
+                  <Text truncate>{item.fileName} </Text>
+                </Tooltip>
+              </Progress.Label>
               <Progress.Track flex="1">
                 <Progress.Range />
               </Progress.Track>

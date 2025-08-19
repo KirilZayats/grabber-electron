@@ -2,7 +2,8 @@ const electron = require("electron");
 
 electron.contextBridge.exposeInMainWorld("electron", {
   subscribeLogs: (callback) => ipcOn("log", callback),
-  testFtpConnection: (payload) => ipcSend("testFtpConnection", payload),
+  testFtpConnection: (payload, isSchemeTest = false) =>
+    ipcSend("testFtpConnection", { payload, isSchemeTest }),
   testFtpConnectionResult: (callback) =>
     ipcOn("testFtpConnectionResult", callback),
   selectLocalDirectory: () => ipcSend("selectLocalDirectory", undefined),
@@ -12,6 +13,12 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcSend("validateLocalDirectory", payload),
   validateLocalDirectoryResult: (callback) =>
     ipcOn("validateLocalDirectoryResult", callback),
+  validateRemoteDirectory: (payload) =>
+    ipcSend("validateRemoteDirectory", payload),
+  validateRemoteDirectoryResult: (callback) =>
+    ipcOn("validateRemoteDirectoryResult", callback),
+  validateHost: (payload) => ipcSend("validateHost", payload),
+  validateHostResult: (callback) => ipcOn("validateHostResult", callback),
   startWatching: (payload) => ipcSend("startWatching", payload),
   stopWatching: () => ipcSend("stopWatching", undefined),
   getFtpTree: (payload) => ipcSend("getFtpTree", payload),
