@@ -41,8 +41,8 @@ app.on("ready", () => {
     progressStats(mainWindow.webContents, fileName, transfer, total);
   };
 
-  ipcMainOn("testFtpConnection", async (config: FtpConfig) => {
-    const ftpClient = new FtpClient(config);
+  ipcMainOn("testFtpConnection", async ({ payload, isSchemeTest }) => {
+    const ftpClient = new FtpClient(payload);
     try {
       const result = await ftpClient.testConnection();
       ipcWebContentsSend(
@@ -51,16 +51,17 @@ app.on("ready", () => {
         result
       );
 
-      const event = result ? "success" : "error";
-      generateLog(
-        mainWindow.webContents,
-        result ? "FTP connection successful" : "FTP connection failed",
-        result ? "info" : "error",
-        {
-          type: "connection",
-          event,
-        }
-      );
+      if (!isSchemeTest) {
+        const event = result ? "success" : "error";
+        logger(
+          result ? "FTP connection successful" : "FTP connection failed",
+          result ? "info" : "error",
+          {
+            type: "connection",
+            event,
+          }
+        );
+      }
       return result;
     } catch (error) {
       ipcWebContentsSend(
@@ -68,8 +69,7 @@ app.on("ready", () => {
         mainWindow.webContents,
         false
       );
-      generateLog(
-        mainWindow.webContents,
+      logger(
         `FTP connection failed: ${
           error instanceof Error ? error.message : "Unknown error"
         }`,

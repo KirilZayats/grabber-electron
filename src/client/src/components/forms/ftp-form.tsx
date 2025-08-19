@@ -25,7 +25,23 @@ const ftpConfigSchema = object({
       });
     }),
   username: string().required(),
-  password: string().required(),
+  password: string()
+    .required()
+    .test("is-valid", "Invalid user", (value, context) => {
+      window.electron.testFtpConnection(
+        {
+          ...context.parent,
+          password: value,
+        },
+        true
+      );
+      return new Promise((resolve) => {
+        const unsub = window.electron.testFtpConnectionResult((result) => {
+          unsub();
+          resolve(result);
+        });
+      });
+    }),
   localDirectory: string()
     .required()
     .test("is-valid", "Invalid local directory", (value) => {
@@ -146,6 +162,7 @@ const FtpForm = () => {
               type="text"
               name="username"
               placeholder="Enter username"
+              displayError={true}
             />
 
             <FormField
@@ -154,6 +171,8 @@ const FtpForm = () => {
               type="password"
               name="password"
               placeholder="Enter password"
+              displayError={false}
+              displayOnlyErrorIcon={true}
             />
           </div>
           <FormField

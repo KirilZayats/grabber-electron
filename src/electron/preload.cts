@@ -2,7 +2,8 @@ const electron = require("electron");
 
 electron.contextBridge.exposeInMainWorld("electron", {
   subscribeLogs: (callback) => ipcOn("log", callback),
-  testFtpConnection: (payload) => ipcSend("testFtpConnection", payload),
+  testFtpConnection: (payload, isSchemeTest = false) =>
+    ipcSend("testFtpConnection", { payload, isSchemeTest }),
   testFtpConnectionResult: (callback) =>
     ipcOn("testFtpConnectionResult", callback),
   selectLocalDirectory: () => ipcSend("selectLocalDirectory", undefined),

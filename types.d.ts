@@ -57,7 +57,7 @@ type EventScope =
 
 type EventPayloadMapping = {
   log: Log;
-  testFtpConnection: FtpConfig;
+  testFtpConnection: { payload: FtpConfig; isSchemeTest: boolean };
   testFtpConnectionResult: boolean;
   selectLocalDirectory: undefined;
   selectLocalDirectoryResult: string;
@@ -80,7 +80,10 @@ type UnsubscribeFunction = () => void;
 interface Window {
   electron: {
     subscribeLogs: (callback: (log: Log) => void) => UnsubscribeFunction;
-    testFtpConnection: (payload: FtpConfig) => void;
+    testFtpConnection: (
+      payload: FtpConfig,
+      isSchemeTest?: boolean = false
+    ) => void;
     testFtpConnectionResult: (
       callback: (result: boolean) => void
     ) => UnsubscribeFunction;
