@@ -1,13 +1,14 @@
 import { Formik, Form } from "formik";
 import { useMemo } from "react";
 import { object, string, number } from "yup";
-import { Button, IconButton } from "@chakra-ui/react";
+import { Button, Heading, IconButton } from "@chakra-ui/react";
 import { FormField } from "./form-field";
 import { LuFolder } from "react-icons/lu";
 import styles from "./ftp-form.module.scss";
 import clsx from "clsx";
 import { toaster } from "@/providers";
 import { FtpDirSelection } from "@/components";
+import { FormattedMessage, useIntl } from "react-intl";
 
 const ftpConfigSchema = object({
   host: string().required(),
@@ -72,6 +73,7 @@ const ftpConfigSchema = object({
 });
 
 const FtpForm = () => {
+  const intl = useIntl();
   const ftpConfig = useMemo<FtpConfig>(() => {
     const ftpConfig = localStorage.getItem("ftpConfig");
     if (ftpConfig) {
@@ -134,9 +136,12 @@ const FtpForm = () => {
     >
       {({ isSubmitting, setSubmitting, setValues, values }) => (
         <Form className={styles._}>
+          <Heading size="md">
+            <FormattedMessage id="connectToFtp" />
+          </Heading>
           <div className={styles._rowFields}>
             <FormField
-              label="Host"
+              label={intl.formatMessage({ id: "host" })}
               type="text"
               name="host"
               placeholder="Enter host"
@@ -146,7 +151,7 @@ const FtpForm = () => {
             />
 
             <FormField
-              label="Port"
+              label={intl.formatMessage({ id: "port" })}
               type="number"
               name="port"
               placeholder="Enter port"
@@ -158,7 +163,7 @@ const FtpForm = () => {
           <div className={styles._rowFields}>
             <FormField
               disabled={isSubmitting}
-              label="Username"
+              label={intl.formatMessage({ id: "username" })}
               type="text"
               name="username"
               placeholder="Enter username"
@@ -167,7 +172,7 @@ const FtpForm = () => {
 
             <FormField
               disabled={isSubmitting}
-              label="Password"
+              label={intl.formatMessage({ id: "password" })}
               type="password"
               name="password"
               placeholder="Enter password"
@@ -176,7 +181,7 @@ const FtpForm = () => {
             />
           </div>
           <FormField
-            label="Local directory"
+            label={intl.formatMessage({ id: "localDir" })}
             type="text"
             name="localDirectory"
             placeholder="Enter local directory"
@@ -194,7 +199,7 @@ const FtpForm = () => {
             }
           />
           <FormField
-            label="Remote directory"
+            label={intl.formatMessage({ id: "remoteDir" })}
             type="text"
             name="remoteDirectory"
             placeholder="Enter remote directory"

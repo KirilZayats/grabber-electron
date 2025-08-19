@@ -9,10 +9,7 @@
   padding-left: 0;
   &rowFields {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
     gap: 0.5rem;
-  }
-  &rowButtons {
-    justify-content: end;
   }
 }

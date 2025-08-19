@@ -21,12 +21,15 @@ app.on("ready", () => {
     webPreferences: {
       preload: getPreloadPath(),
     },
+    minWidth: 1000,
+    minHeight: 600,
   });
 
   if (isDev()) {
     mainWindow.loadURL("http://localhost:5123");
   } else {
     mainWindow.loadFile(getUIPath());
+    mainWindow.setMenu(null);
   }
   const watchDir = new WatchDir();
   const logger = (message: string, type: LogType, scope: EventScope) => {
@@ -71,7 +74,7 @@ app.on("ready", () => {
       );
       logger(
         `FTP connection failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : "unknown error"
         }`,
         "error",
         {

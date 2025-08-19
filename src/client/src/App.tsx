@@ -1,13 +1,21 @@
 import { MainPage } from "@/pages";
 import { Toaster } from "@/components";
 import { toaster } from "@/providers";
+import { locales, messages } from "./i18n";
+import { IntlProvider } from "react-intl";
+import { useGlobalStore } from "./hooks";
 
 function App() {
+  const { locale } = useGlobalStore();
   return (
-    <div>
+    <IntlProvider
+      defaultLocale={locales.En}
+      locale={locale}
+      messages={messages[locales[locale as keyof typeof locales]]}
+    >
       <MainPage />
       <Toaster toaster={toaster} />
-    </div>
+    </IntlProvider>
   );
 }
 

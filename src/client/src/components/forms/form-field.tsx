@@ -34,7 +34,7 @@ const FormField = ({
             meta.touched && meta.error ? (
               <LuCircleX color="red" />
             ) : (
-              <LuCircleCheck />
+              <LuCircleCheck color="green" />
             )
           ) : (
             endElement

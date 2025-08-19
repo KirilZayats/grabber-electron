@@ -23,7 +23,7 @@ const FilesLoadProgress = (props: { progress: FilesLoadProgress[] }) => {
             colorPalette="teal"
           >
             <HStack gap="5">
-              <Progress.Label w="5%">
+              <Progress.Label w="10%">
                 <Tooltip
                   content={item.fileName}
                   showArrow
