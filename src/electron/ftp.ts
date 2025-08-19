@@ -17,28 +17,56 @@ export class FtpClient {
     this.onProgress = onProgress;
   }
 
-  static async isServerAvailable(host: string, port: number) {
+  static async isServerAvailable(
+    host: string,
+    port: number,
+    timeout: number = 3000
+  ) {
     const client = new Client();
+    client.ftp.verbose = false;
+
+    // Set timeout for the connection
+    const timeoutPromise = new Promise<boolean>((_, reject) => {
+      setTimeout(() => reject(new Error("Connection timeout")), timeout);
+    });
+
+    const connectPromise = (async () => {
+      try {
+        await client.connect(host, port);
+        return true;
+      } catch {
+        return false;
+      } finally {
+        client.close();
+      }
+    })();
+
     try {
-      await client.connect(host, port);
-      return true;
+      return await Promise.race([connectPromise, timeoutPromise]);
     } catch {
       return false;
-    } finally {
-      client.close();
     }
   }
 
-  async connect() {
+  async connect(timeout: number = 10000) {
     const client = new Client();
-    await client.access({
-      host: this.config.host,
-      port: this.config.port,
-      user: this.config.username,
-      password: this.config.password,
-      secure: false,
+
+    // Set timeout for connection
+    const timeoutPromise = new Promise<Client>((_, reject) => {
+      setTimeout(() => reject(new Error("Connection timeout")), timeout);
     });
-    return client;
+
+    const connectPromise = client
+      .access({
+        host: this.config.host,
+        port: this.config.port,
+        user: this.config.username,
+        password: this.config.password,
+        secure: false,
+      })
+      .then(() => client);
+
+    return await Promise.race([connectPromise, timeoutPromise]);
   }
 
   disconnect(client?: Client) {
@@ -66,11 +94,22 @@ export class FtpClient {
   }
 
   async validateRemoteDirectory() {
-    const client = await this.connect();
+    let client: Client | undefined;
     try {
+      client = await this.connect();
       await client.cd(this.config.remoteDirectory);
       return true;
-    } catch {
+    } catch (error) {
+      this.logger?.(
+        `Remote directory validation failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error",
+        {
+          type: "connection",
+          event: "error",
+        }
+      );
       return false;
     } finally {
       this.disconnect(client);
@@ -78,8 +117,9 @@ export class FtpClient {
   }
 
   async getFtpTree(initPath: string) {
-    const client = await this.connect();
+    let client: Client | undefined;
     try {
+      client = await this.connect();
       const items = await client.list(initPath);
 
       return items
@@ -93,11 +133,17 @@ export class FtpClient {
             : null
         )
         .filter(Boolean) as DirectoryNode[];
-    } catch {
-      this.logger?.("Error crawling FTP directory", "error", {
-        type: "connection",
-        event: "error",
-      });
+    } catch (error) {
+      this.logger?.(
+        `Error crawling FTP directory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error",
+        {
+          type: "connection",
+          event: "error",
+        }
+      );
       return [] as DirectoryNode[];
     } finally {
       this.disconnect(client);
@@ -105,8 +151,9 @@ export class FtpClient {
   }
 
   async sendFile(localPath: string) {
-    const client = await this.connect();
+    let client: Client | undefined;
     try {
+      client = await this.connect();
       client.trackProgress((info) => {
         this.onProgress?.(info.name, info.bytes, this.getFileSize(localPath));
       });
@@ -120,19 +167,28 @@ export class FtpClient {
         path.join(this.config.remoteDirectory, subtrFilename)
       );
     } catch (error) {
-      this.logger?.(`Error sending file: ${error}`, "error", {
-        type: "file",
-        event: "sent",
-      });
+      this.logger?.(
+        `Error sending file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error",
+        {
+          type: "file",
+          event: "sent",
+        }
+      );
     } finally {
-      this.disconnect();
-      client.trackProgress();
+      if (client) {
+        client.trackProgress();
+        this.disconnect(client);
+      }
     }
   }
 
   async removeFile(localPath: string) {
-    const client = await this.connect();
+    let client: Client | undefined;
     try {
+      client = await this.connect();
       const remoteFile = path.join(
         this.config.remoteDirectory,
         localPath.replace(this.config.localDirectory, "")
@@ -140,18 +196,25 @@ export class FtpClient {
 
       await client.remove(remoteFile);
     } catch (error) {
-      this.logger?.(`Error deleting file: ${error}`, "error", {
-        type: "file",
-        event: "deleted",
-      });
+      this.logger?.(
+        `Error deleting file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error",
+        {
+          type: "file",
+          event: "deleted",
+        }
+      );
     } finally {
       this.disconnect(client);
     }
   }
 
   async createDirectory(localPath: string) {
-    const client = await this.connect();
+    let client: Client | undefined;
     try {
+      client = await this.connect();
       client.trackProgress((info) => {
         this.onProgress?.(
           info.name,
@@ -165,26 +228,36 @@ export class FtpClient {
       await client.cd(this.config.remoteDirectory);
       await client.uploadFromDir(localPath, remoteDir);
     } catch (error) {
-      this.logger?.(`Error creating directory: ${error}`, "error", {
-        type: "directory",
-        event: "created",
-      });
+      this.logger?.(
+        `Error creating directory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error",
+        {
+          type: "directory",
+          event: "created",
+        }
+      );
     } finally {
-      this.disconnect(client);
-      client.trackProgress();
+      if (client) {
+        client.trackProgress();
+        this.disconnect(client);
+      }
     }
   }
 
   async removeDirectory(remotePath: string) {
-    const client = await this.connect();
+    let client: Client | undefined;
     try {
+      client = await this.connect();
       await client.removeDir(remotePath);
     } catch (error: unknown) {
-      if (error instanceof FTPError && error.code !== 550)
-        this.logger?.(`Error removing directory: ${error}`, "error", {
+      if (error instanceof FTPError && error.code !== 550) {
+        this.logger?.(`Error removing directory: ${error.message}`, "error", {
           type: "directory",
           event: "removed",
         });
+      }
     } finally {
       this.disconnect(client);
     }

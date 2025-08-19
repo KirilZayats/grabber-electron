@@ -43,8 +43,8 @@ app.on("ready", () => {
 
   ipcMainOn("testFtpConnection", async (config: FtpConfig) => {
     const ftpClient = new FtpClient(config);
-    const result = ftpClient.testConnection();
-    result.then((result) => {
+    try {
+      const result = await ftpClient.testConnection();
       ipcWebContentsSend(
         "testFtpConnectionResult",
         mainWindow.webContents,
@@ -61,8 +61,26 @@ app.on("ready", () => {
           event,
         }
       );
-    });
-    return result;
+      return result;
+    } catch (error) {
+      ipcWebContentsSend(
+        "testFtpConnectionResult",
+        mainWindow.webContents,
+        false
+      );
+      generateLog(
+        mainWindow.webContents,
+        `FTP connection failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "error",
+        {
+          type: "connection",
+          event: "error",
+        }
+      );
+      return false;
+    }
   });
 
   ipcMainOn("selectLocalDirectory", async () => {
@@ -86,13 +104,21 @@ app.on("ready", () => {
   });
 
   ipcMainOn("validateRemoteDirectory", async (payload) => {
-    const ftpClient = new FtpClient(payload);
-    const result = await ftpClient.validateRemoteDirectory();
-    ipcWebContentsSend(
-      "validateRemoteDirectoryResult",
-      mainWindow.webContents,
-      { path: payload.remoteDirectory, exists: result }
-    );
+    try {
+      const ftpClient = new FtpClient(payload);
+      const result = await ftpClient.validateRemoteDirectory();
+      ipcWebContentsSend(
+        "validateRemoteDirectoryResult",
+        mainWindow.webContents,
+        { path: payload.remoteDirectory, exists: result }
+      );
+    } catch {
+      ipcWebContentsSend(
+        "validateRemoteDirectoryResult",
+        mainWindow.webContents,
+        { path: payload.remoteDirectory, exists: false }
+      );
+    }
   });
 
   ipcMainOn("startWatching", async (payload: FtpConfig) => {
@@ -105,18 +131,18 @@ app.on("ready", () => {
   });
 
   ipcMainOn("getFtpTree", async (payload: FtpConfig & { path?: string }) => {
-    const ftpClient = new FtpClient(payload, logger);
-    const result = await ftpClient.getFtpTree(payload.path || "");
-    ipcWebContentsSend("getFtpTreeResult", mainWindow.webContents, result);
+    try {
+      const ftpClient = new FtpClient(payload, logger);
+      const result = await ftpClient.getFtpTree(payload.path || "");
+      ipcWebContentsSend("getFtpTreeResult", mainWindow.webContents, result);
+    } catch {
+      ipcWebContentsSend("getFtpTreeResult", mainWindow.webContents, []);
+    }
   });
 
   ipcMainHandle("getLogs", () => {
     const logs: Log[] = [];
-    storage.getAll(function (error, data) {
-      if (error) {
-        console.error(error);
-      }
-
+    storage.getAll(function (_, data) {
       Object.values(data).forEach((log) => {
         ipcWebContentsSend(
           "log",
@@ -126,5 +152,14 @@ app.on("ready", () => {
       });
     });
     return logs;
+  });
+
+  ipcMainOn("validateHost", async ({ host, port }) => {
+    try {
+      const result = await FtpClient.isServerAvailable(host, port);
+      ipcWebContentsSend("validateHostResult", mainWindow.webContents, result);
+    } catch {
+      ipcWebContentsSend("validateHostResult", mainWindow.webContents, false);
+    }
   });
 });

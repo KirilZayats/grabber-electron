@@ -65,6 +65,8 @@ type EventPayloadMapping = {
   validateLocalDirectoryResult: { path: string; exists: boolean };
   validateRemoteDirectory: FtpConfig;
   validateRemoteDirectoryResult: { path: string; exists: boolean };
+  validateHost: { host: string; port: number };
+  validateHostResult: boolean;
   startWatching: FtpConfig;
   stopWatching: undefined;
   getFtpTree: FtpConfig;
@@ -93,6 +95,10 @@ interface Window {
     validateRemoteDirectory: (payload: FtpConfig) => void;
     validateRemoteDirectoryResult: (
       callback: (result: { path: string; exists: boolean }) => void
+    ) => UnsubscribeFunction;
+    validateHost: (payload: { host: string; port: number }) => void;
+    validateHostResult: (
+      callback: (result: boolean) => void
     ) => UnsubscribeFunction;
     startWatching: (payload: FtpConfig) => void;
     stopWatching: () => void;

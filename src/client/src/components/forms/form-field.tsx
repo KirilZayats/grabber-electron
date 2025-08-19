@@ -21,7 +21,9 @@ const FormField = ({
 }) => {
   const [field, meta] = useField(props);
   return (
-    <Field.Root invalid={!!(meta.touched && meta.error)}>
+    <Field.Root
+      invalid={!displayOnlyErrorIcon && !!(meta.touched && meta.error)}
+    >
       <Field.Label>{label}</Field.Label>
       <InputGroup
         startElement={startElement}
@@ -30,7 +32,7 @@ const FormField = ({
         endElement={
           displayOnlyErrorIcon ? (
             meta.touched && meta.error ? (
-              <LuCircleX />
+              <LuCircleX color="red" />
             ) : (
               <LuCircleCheck />
             )

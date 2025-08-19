@@ -11,7 +11,19 @@ import { FtpDirSelection } from "@/components";
 
 const ftpConfigSchema = object({
   host: string().required(),
-  port: number().required().min(21).max(65535),
+  port: number()
+    .required()
+    .min(21)
+    .max(65535)
+    .test("is-valid", "Invalid port", (value, context) => {
+      window.electron.validateHost({ host: context.parent.host, port: value });
+      return new Promise((resolve) => {
+        const unsub = window.electron.validateHostResult((result) => {
+          unsub();
+          resolve(result);
+        });
+      });
+    }),
   username: string().required(),
   password: string().required(),
   localDirectory: string()

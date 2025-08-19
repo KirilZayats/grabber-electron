@@ -16,6 +16,8 @@ electron.contextBridge.exposeInMainWorld("electron", {
     ipcSend("validateRemoteDirectory", payload),
   validateRemoteDirectoryResult: (callback) =>
     ipcOn("validateRemoteDirectoryResult", callback),
+  validateHost: (payload) => ipcSend("validateHost", payload),
+  validateHostResult: (callback) => ipcOn("validateHostResult", callback),
   startWatching: (payload) => ipcSend("startWatching", payload),
   stopWatching: () => ipcSend("stopWatching", undefined),
   getFtpTree: (payload) => ipcSend("getFtpTree", payload),
