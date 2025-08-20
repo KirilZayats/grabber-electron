@@ -2,6 +2,7 @@ import { Table } from "@chakra-ui/react";
 import { LogBadge } from "./log-badge";
 import styles from "./log-panel.module.scss";
 import { useLogs, useWindowInnerSize } from "@/hooks";
+import { FormattedMessage } from "react-intl";
 
 const logTypeToColor = {
   info: "blue",
@@ -66,7 +67,7 @@ const LogPanel = () => {
         <Table.Header>
           <Table.Row zIndex={2}>
             <Table.ColumnHeader width="180px" data-sticky="end" left="0">
-              Timestamp
+              <FormattedMessage id="timestamp" />
             </Table.ColumnHeader>
             <Table.ColumnHeader
               width="100px"
@@ -74,13 +75,13 @@ const LogPanel = () => {
               textAlign="start"
               left="180px"
             >
-              Type
+              <FormattedMessage id="type" />
             </Table.ColumnHeader>
             <Table.ColumnHeader width="150px" textAlign="start">
-              Scope
+              <FormattedMessage id="scope" />
             </Table.ColumnHeader>
             <Table.ColumnHeader textAlign="start" width="fit-content">
-              Message
+              <FormattedMessage id="message" />
             </Table.ColumnHeader>
           </Table.Row>
         </Table.Header>

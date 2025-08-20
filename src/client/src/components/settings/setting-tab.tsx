@@ -34,8 +34,8 @@ const SettingTab = () => {
           size="sm"
           colorPalette="teal"
           w="min-content"
-          onValueChange={(value) =>
-            setLocale(locales[value.value as keyof typeof locales])
+          onValueChange={({ value }) =>
+            setLocale(locales[value as keyof typeof locales])
           }
         >
           <SegmentGroup.Indicator />

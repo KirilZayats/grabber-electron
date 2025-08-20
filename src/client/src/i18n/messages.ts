@@ -13,6 +13,10 @@ export const messages = {
     username: "Имя пользователя",
     password: "Пароль",
     connectToFtp: "Подключиться к FTP",
+    timestamp: "Время",
+    type: "Тип",
+    scope: "Область",
+    message: "Сообщение",
   },
   [locales.En]: {
     settings: "Settings",
@@ -26,5 +30,9 @@ export const messages = {
     username: "Username",
     password: "Password",
     connectToFtp: "Connect to FTP",
+    timestamp: "Timestamp",
+    type: "Type",
+    scope: "Scope",
+    message: "Message",
   },
 };
