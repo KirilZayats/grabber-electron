@@ -21,6 +21,7 @@ app.on("ready", () => {
     webPreferences: {
       preload: getPreloadPath(),
     },
+    fullscreen: true,
     minWidth: 1000,
     minHeight: 600,
   });

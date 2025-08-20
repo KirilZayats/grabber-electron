@@ -1,12 +1,12 @@
-import { locales } from "@/i18n";
+import { locales, type Locale } from "@/i18n";
 import type { StateCreator } from "zustand";
 
 export interface LocaleStore {
-  locale: (typeof locales)[keyof typeof locales];
-  setLocale: (locale: keyof typeof locales) => void;
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
 }
 
 export const createLocaleSlice: StateCreator<LocaleStore> = (set) => ({
   locale: locales.Ru,
-  setLocale: (locale: keyof typeof locales) => set({ locale }),
+  setLocale: (locale: Locale) => set({ locale }),
 });

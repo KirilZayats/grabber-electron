@@ -8,8 +8,11 @@
   padding: 1rem;
   padding-left: 0;
   &rowFields {
-    display: flex;
+    display: grid;
+    grid-template-columns: min-content 1fr 1fr;
+    row-gap: 0.5rem;
     align-items: center;
     gap: 0.5rem;
+    width: 100%;
   }
 }

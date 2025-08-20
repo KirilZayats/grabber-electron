@@ -1,4 +1,4 @@
-import { Heading, HStack, SegmentGroup, Text } from "@chakra-ui/react";
+import { Heading, SegmentGroup, Text } from "@chakra-ui/react";
 import styles from "./settings.module.scss";
 import { LuClock, LuLanguages, LuSunMoon } from "react-icons/lu";
 import { useColorMode } from "@/providers/Chakra/color-mode-utils";
@@ -24,8 +24,7 @@ const SettingTab = () => {
           <FormattedMessage id="theme" />
         </Text>
         <ThemeSwitcher onSwitch={setColorMode} />
-      </div>
-      <div className={styles._rowFields}>
+
         <LuLanguages />
         <Text>
           <FormattedMessage id="language" />
@@ -34,28 +33,34 @@ const SettingTab = () => {
           value={locale}
           size="sm"
           colorPalette="teal"
+          w="min-content"
           onValueChange={(value) =>
-            setLocale(value.value as keyof typeof locales)
+            setLocale(locales[value.value as keyof typeof locales])
           }
         >
           <SegmentGroup.Indicator />
-          <SegmentGroup.Items items={Object.keys(locales)} />
+          <SegmentGroup.Items
+            items={Object.entries(locales).map(([key, value]) => ({
+              value: value,
+              label: key,
+            }))}
+          />
         </SegmentGroup.Root>
-      </div>
-
-      <div className={styles._rowFields}>
+        <LuClock />
         <Tooltip
           content={intl.formatMessage({ id: "timezone" })}
           positioning={{ placement: "bottom-start" }}
         >
-          <HStack>
-            <LuClock />
-            <Text>
-              <FormattedMessage id="timezone" />
-            </Text>
-          </HStack>
+          <Text>
+            <FormattedMessage id="timezone" />
+          </Text>
         </Tooltip>
-        <SegmentGroup.Root defaultValue="local" size="sm" colorPalette="teal">
+        <SegmentGroup.Root
+          defaultValue="local"
+          size="sm"
+          colorPalette="teal"
+          w="min-content"
+        >
           <SegmentGroup.Indicator />
           <SegmentGroup.Items items={["local", "utc"]} />
         </SegmentGroup.Root>

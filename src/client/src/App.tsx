@@ -11,7 +11,7 @@ function App() {
     <IntlProvider
       defaultLocale={locales.En}
       locale={locale}
-      messages={messages[locales[locale as keyof typeof locales]]}
+      messages={messages[locale]}
     >
       <MainPage />
       <Toaster toaster={toaster} />
