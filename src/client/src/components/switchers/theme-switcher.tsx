@@ -8,7 +8,7 @@ const ThemeSwitcher = ({
 }: {
   onSwitch: (colorMode: ColorMode) => void;
 }) => {
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(true);
 
   return (
     <Switch.Root

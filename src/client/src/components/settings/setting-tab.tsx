@@ -6,7 +6,7 @@ import { ThemeSwitcher } from "../switchers/theme-switcher";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Tooltip } from "../tooltip";
 import { useGlobalStore } from "@/hooks";
-import { locales } from "@/i18n";
+import { locales, type Locale } from "@/i18n";
 
 const SettingTab = () => {
   const { setColorMode } = useColorMode();
@@ -34,9 +34,7 @@ const SettingTab = () => {
           size="sm"
           colorPalette="teal"
           w="min-content"
-          onValueChange={({ value }) =>
-            setLocale(locales[value as keyof typeof locales])
-          }
+          onValueChange={({ value }) => setLocale(value as Locale)}
         >
           <SegmentGroup.Indicator />
           <SegmentGroup.Items
@@ -51,7 +49,7 @@ const SettingTab = () => {
           content={intl.formatMessage({ id: "timezone" })}
           positioning={{ placement: "bottom-start" }}
         >
-          <Text>
+          <Text truncate>
             <FormattedMessage id="timezone" />
           </Text>
         </Tooltip>

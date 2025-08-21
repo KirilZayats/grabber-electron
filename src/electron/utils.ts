@@ -1,4 +1,4 @@
-import { WebContents } from "electron";
+import { type WebContents } from "electron";
 import fs from "fs";
 import { ipcMain } from "electron";
 import { v4 as uuidv4 } from "uuid";

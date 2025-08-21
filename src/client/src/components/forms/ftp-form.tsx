@@ -256,10 +256,10 @@ const FtpForm = () => {
               }}
               disabled={!isSubmitting}
             >
-              Stop watching
+              <FormattedMessage id="stopWatch" />
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              Watch
+              <FormattedMessage id="watch" />
             </Button>
           </div>
         </Form>

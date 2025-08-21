@@ -24,7 +24,7 @@ const FormField = ({
     <Field.Root
       invalid={!displayOnlyErrorIcon && !!(meta.touched && meta.error)}
     >
-      <Field.Label>{label}</Field.Label>
+      <Field.Label truncate>{label}</Field.Label>
       <InputGroup
         startElement={startElement}
         startElementProps={{ color: "fg.muted" }}

@@ -17,6 +17,8 @@ export const messages = {
     type: "Тип",
     scope: "Область",
     message: "Сообщение",
+    watch: "Отслеживать",
+    stopWatch: "Остановить",
   },
   [locales.En]: {
     settings: "Settings",
@@ -34,5 +36,7 @@ export const messages = {
     type: "Type",
     scope: "Scope",
     message: "Message",
+    watch: "Watch",
+    stopWatch: "Stop watching",
   },
 };
