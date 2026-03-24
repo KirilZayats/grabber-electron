@@ -92,7 +92,14 @@ export const progressStats = (
   transfer: number,
   total: number
 ) => {
-  const progress = +((transfer / total) * 100).toFixed(2);
+  const t = Number(total);
+  const tr = Number(transfer);
+  const progress =
+    Number.isFinite(t) && t > 0
+      ? +((Math.min(1, tr / t) * 100).toFixed(2))
+      : Number.isFinite(tr) && tr > 0
+        ? 100
+        : 0;
 
   ipcWebContentsSend("subscribeProgress", webContents, {
     fileName,

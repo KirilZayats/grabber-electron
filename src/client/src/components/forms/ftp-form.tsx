@@ -1,5 +1,5 @@
 import { Formik, Form } from "formik";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { object, string, number } from "yup";
 import { Button, Heading, IconButton } from "@chakra-ui/react";
 import { FormField } from "./form-field";
@@ -10,6 +10,67 @@ import { toaster } from "@/providers";
 import { FtpDirSelection } from "@/components";
 import { FormattedMessage, useIntl } from "react-intl";
 
+const FTP_CONFIG_STORAGE_KEY = "ftpConfig";
+
+function defaultFtpConfig(): FtpConfig {
+  return {
+    host: "",
+    port: 21,
+    username: "",
+    password: "",
+    localDirectory: "",
+    remoteDirectory: "",
+  };
+}
+
+/** Ensures all fields are defined (localStorage / Formik can be partial). */
+function normalizeFtpConfig(raw: unknown): FtpConfig {
+  const d = defaultFtpConfig();
+  if (!raw || typeof raw !== "object") {
+    return d;
+  }
+  const p = raw as Record<string, unknown>;
+  const portNum = Number(p.port);
+  return {
+    host: typeof p.host === "string" ? p.host : d.host,
+    port:
+      Number.isFinite(portNum) && portNum >= 21 && portNum <= 65535
+        ? portNum
+        : d.port,
+    username: typeof p.username === "string" ? p.username : d.username,
+    password: typeof p.password === "string" ? p.password : d.password,
+    localDirectory:
+      typeof p.localDirectory === "string" ? p.localDirectory : d.localDirectory,
+    remoteDirectory:
+      typeof p.remoteDirectory === "string"
+        ? p.remoteDirectory
+        : d.remoteDirectory,
+  };
+}
+
+function loadFtpConfigFromStorage(): FtpConfig {
+  try {
+    const raw = localStorage.getItem(FTP_CONFIG_STORAGE_KEY);
+    if (!raw) {
+      return defaultFtpConfig();
+    }
+    return normalizeFtpConfig(JSON.parse(raw));
+  } catch {
+    return defaultFtpConfig();
+  }
+}
+
+function saveFtpConfigToStorage(config: FtpConfig): void {
+  try {
+    localStorage.setItem(
+      FTP_CONFIG_STORAGE_KEY,
+      JSON.stringify(normalizeFtpConfig(config))
+    );
+  } catch {
+    // private mode / quota
+  }
+}
+
 const ftpConfigSchema = object({
   host: string().required(),
   port: number()
@@ -17,7 +78,8 @@ const ftpConfigSchema = object({
     .min(21)
     .max(65535)
     .test("is-valid", "Invalid port", (value, context) => {
-      window.electron.validateHost({ host: context.parent.host, port: value });
+      const cfg = normalizeFtpConfig(context.parent);
+      window.electron.validateHost({ host: cfg.host, port: value });
       return new Promise((resolve) => {
         const unsub = window.electron.validateHostResult((result) => {
           unsub();
@@ -30,10 +92,7 @@ const ftpConfigSchema = object({
     .required()
     .test("is-valid", "Invalid user", (value, context) => {
       window.electron.testFtpConnection(
-        {
-          ...context.parent,
-          password: value,
-        },
+        { ...normalizeFtpConfig(context.parent), password: value },
         true
       );
       return new Promise((resolve) => {
@@ -57,10 +116,9 @@ const ftpConfigSchema = object({
   remoteDirectory: string()
     .required()
     .test("is-valid", "Invalid remote directory", (value, context) => {
-      window.electron.validateRemoteDirectory({
-        ...context.parent,
-        remoteDirectory: value,
-      });
+      window.electron.validateRemoteDirectory(
+        normalizeFtpConfig({ ...context.parent, remoteDirectory: value })
+      );
       return new Promise((resolve) => {
         const unsub = window.electron.validateRemoteDirectoryResult(
           (result) => {
@@ -74,24 +132,12 @@ const ftpConfigSchema = object({
 
 const FtpForm = () => {
   const intl = useIntl();
-  const ftpConfig = useMemo<FtpConfig>(() => {
-    const ftpConfig = localStorage.getItem("ftpConfig");
-    if (ftpConfig) {
-      return JSON.parse(ftpConfig);
-    }
-    return {
-      host: "",
-      port: 21,
-      username: "",
-      password: "",
-      localDirectory: "",
-      remoteDirectory: "",
-    };
-  }, []);
+  const initialValues = useMemo(() => loadFtpConfigFromStorage(), []);
 
-  const startWatching = (ftpConfig: FtpConfig) => {
-    localStorage.setItem("ftpConfig", JSON.stringify(ftpConfig));
-    window.electron.startWatching(ftpConfig);
+  const startWatching = (cfg: FtpConfig) => {
+    const normalized = normalizeFtpConfig(cfg);
+    saveFtpConfigToStorage(normalized);
+    window.electron.startWatching(normalized);
   };
 
   const handleLocalDirSelect = (
@@ -102,21 +148,28 @@ const FtpForm = () => {
   ) => {
     window.electron.selectLocalDirectory();
     const unsub = window.electron.selectLocalDirectoryResult((dir) => {
-      setValues((values) => ({ ...values, localDirectory: dir }));
+      if (typeof dir === "string" && dir.length > 0) {
+        setValues((values) => ({
+          ...values,
+          localDirectory: dir,
+        }));
+      }
       unsub();
     });
   };
 
   return (
     <Formik
-      initialValues={ftpConfig}
+      initialValues={initialValues}
       validationSchema={ftpConfigSchema}
       onSubmit={(values, { setSubmitting }) => {
-        window.electron.testFtpConnection(values);
+        const cfg = normalizeFtpConfig(values);
+        saveFtpConfigToStorage(cfg);
+        window.electron.testFtpConnection(cfg);
         const unsub = window.electron.testFtpConnectionResult((result) => {
           if (result) {
             setSubmitting(true);
-            startWatching(values);
+            startWatching(cfg);
             toaster.create({
               title: "FTP connection successful",
               description: "FTP connection successful",
@@ -135,6 +188,47 @@ const FtpForm = () => {
       }}
     >
       {({ isSubmitting, setSubmitting, setValues, values }) => (
+        <FtpFormBody
+          intl={intl}
+          isSubmitting={isSubmitting}
+          setSubmitting={setSubmitting}
+          setValues={setValues}
+          values={values}
+          handleLocalDirSelect={handleLocalDirSelect}
+        />
+      )}
+    </Formik>
+  );
+};
+
+function FtpFormBody({
+  intl,
+  isSubmitting,
+  setSubmitting,
+  setValues,
+  values,
+  handleLocalDirSelect,
+}: {
+  intl: ReturnType<typeof useIntl>;
+  isSubmitting: boolean;
+  setSubmitting: (v: boolean) => void;
+  setValues: (
+    values: React.SetStateAction<FtpConfig>,
+    shouldValidate?: boolean
+  ) => void;
+  values: FtpConfig;
+  handleLocalDirSelect: (
+    setValues: (
+      values: React.SetStateAction<FtpConfig>,
+      shouldValidate?: boolean
+    ) => void
+  ) => void;
+}) {
+  useEffect(() => {
+    saveFtpConfigToStorage(normalizeFtpConfig(values));
+  }, [values]);
+
+  return (
         <Form className={styles._}>
           <Heading size="md">
             <FormattedMessage id="connectToFtp" />
@@ -227,7 +321,8 @@ const FtpForm = () => {
                 loadChildren={(details) => {
                   const value = details.node.id;
                   return new Promise((resolve) => {
-                    window.electron.getFtpTree({ ...values, path: value });
+                    const cfg = normalizeFtpConfig(values);
+                    window.electron.getFtpTree({ ...cfg, path: value });
                     const unsub = window.electron.getFtpTreeResult((result) => {
                       resolve(result);
                       unsub();
@@ -263,9 +358,7 @@ const FtpForm = () => {
             </Button>
           </div>
         </Form>
-      )}
-    </Formik>
   );
-};
+}
 
 export { FtpForm };

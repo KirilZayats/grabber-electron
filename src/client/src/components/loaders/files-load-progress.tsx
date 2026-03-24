@@ -13,13 +13,15 @@ const FilesLoadProgress = (props: { progress: FilesLoadProgress[] }) => {
       p=".1rem 1rem"
     >
       <For each={props.progress}>
-        {(item) => (
+        {(item) => {
+          const pct = Number.isFinite(item.progress) ? item.progress : 0;
+          return (
           <Progress.Root
             key={item.fileName}
             maxW="100%"
-            striped={item.progress < 100}
+            striped={pct < 100}
             animated
-            value={item.progress}
+            value={pct}
             colorPalette="teal"
           >
             <HStack gap="5">
@@ -35,10 +37,11 @@ const FilesLoadProgress = (props: { progress: FilesLoadProgress[] }) => {
               <Progress.Track flex="1">
                 <Progress.Range />
               </Progress.Track>
-              <Progress.ValueText>{item.progress}%</Progress.ValueText>
+              <Progress.ValueText>{pct}%</Progress.ValueText>
             </HStack>
           </Progress.Root>
-        )}
+          );
+        }}
       </For>
     </Box>
   );

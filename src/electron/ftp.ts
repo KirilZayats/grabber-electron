@@ -23,6 +23,23 @@ function isTransportFailure(error: unknown): boolean {
   return isConnectionError(error) || isFtpConnectionClosed(error);
 }
 
+/** IPC / forms may send partial config; avoid throwing on undefined strings. */
+function coerceFtpConfig(config: FtpConfig | undefined): FtpConfig {
+  const c = config ?? ({} as FtpConfig);
+  const port =
+    typeof c.port === "number" && Number.isFinite(c.port) && c.port > 0
+      ? c.port
+      : 21;
+  return {
+    host: String(c.host ?? ""),
+    port,
+    username: String(c.username ?? ""),
+    password: String(c.password ?? ""),
+    localDirectory: String(c.localDirectory ?? ""),
+    remoteDirectory: String(c.remoteDirectory ?? "").replace(/\\/g, "/"),
+  };
+}
+
 export class FtpClient {
   private config: FtpConfig;
   private readonly logger?: Logger;
@@ -30,13 +47,12 @@ export class FtpClient {
   private readonly transferHooks?: FtpTransferHooks;
 
   constructor(
-    config: FtpConfig,
+    config: FtpConfig | undefined,
     logger?: Logger,
     onProgress?: Progress,
     transferHooks?: FtpTransferHooks
   ) {
-    const remoteDirectory = config.remoteDirectory.replace(/\\/g, "/");
-    this.config = { ...config, remoteDirectory };
+    this.config = coerceFtpConfig(config);
     this.logger = logger;
     this.onProgress = onProgress;
     this.transferHooks = transferHooks;

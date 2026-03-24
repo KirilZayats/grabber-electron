@@ -106,8 +106,8 @@ app.on("ready", () => {
   };
 
   ipcMainOn("testFtpConnection", async ({ payload, isSchemeTest }) => {
-    const ftpClient = new FtpClient(payload);
     try {
+      const ftpClient = new FtpClient(payload);
       const result = await ftpClient.testConnection();
       ipcWebContentsSend(
         "testFtpConnectionResult",
