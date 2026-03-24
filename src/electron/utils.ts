@@ -7,6 +7,34 @@ export function isDev(): boolean {
   return process.env.NODE_ENV === "development";
 }
 
+const SOCKET_ERRNO_CODES = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ETIMEDOUT",
+  "ENOTFOUND",
+  "EPIPE",
+  "ECONNABORTED",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "EAI_AGAIN",
+]);
+
+/** True for transport / socket failures, not FTP auth or path errors. */
+export function isConnectionError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const e = error as NodeJS.ErrnoException;
+  if (typeof e.code === "string" && SOCKET_ERRNO_CODES.has(e.code)) {
+    return true;
+  }
+  const msg =
+    error instanceof Error ? error.message.toLowerCase() : String(error);
+  return /connection timeout|connection reset|connection refused|econn|socket hang up|socket closed|network (?:error|unreachable)|timed out|ehostunreach|enetunreach|getaddrinfo/.test(
+    msg
+  );
+}
+
 export function ipcMainHandle<Key extends keyof EventPayloadMapping>(
   key: Key,
   handler: () => EventPayloadMapping[Key]

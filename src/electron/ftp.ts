@@ -1,21 +1,45 @@
 import { Client, FTPError } from "basic-ftp";
 import fs from "fs";
 import path from "path";
-import { generateLog, progressStats } from "./utils.js";
+import { generateLog, progressStats, isConnectionError } from "./utils.js";
 
 type Logger = (...args: ParametersExceptFirst<typeof generateLog>) => void;
 type Progress = (...args: ParametersExceptFirst<typeof progressStats>) => void;
+
+export type FtpTransferHooks = {
+  onTransferSuccess?: () => void | Promise<void>;
+  onConnectionFailure?: () => void | Promise<void>;
+};
+
+function isFtpConnectionClosed(error: unknown): boolean {
+  if (!(error instanceof FTPError)) {
+    return false;
+  }
+  const c = Number(error.code);
+  return c === 421 || c === 426;
+}
+
+function isTransportFailure(error: unknown): boolean {
+  return isConnectionError(error) || isFtpConnectionClosed(error);
+}
 
 export class FtpClient {
   private config: FtpConfig;
   private readonly logger?: Logger;
   private readonly onProgress?: Progress;
+  private readonly transferHooks?: FtpTransferHooks;
 
-  constructor(config: FtpConfig, logger?: Logger, onProgress?: Progress) {
+  constructor(
+    config: FtpConfig,
+    logger?: Logger,
+    onProgress?: Progress,
+    transferHooks?: FtpTransferHooks
+  ) {
     const remoteDirectory = config.remoteDirectory.replace(/\\/g, "/");
     this.config = { ...config, remoteDirectory };
     this.logger = logger;
     this.onProgress = onProgress;
+    this.transferHooks = transferHooks;
   }
 
   static async isServerAvailable(
@@ -161,7 +185,7 @@ export class FtpClient {
     }
   }
 
-  async sendFile(localPath: string) {
+  async sendFile(localPath: string): Promise<boolean> {
     let client: Client | undefined;
     try {
       client = await this.connect();
@@ -183,6 +207,8 @@ export class FtpClient {
           .join(this.config.remoteDirectory, subtrFilename)
           .replace(/\\/g, "/")
       );
+      await Promise.resolve(this.transferHooks?.onTransferSuccess?.());
+      return true;
     } catch (error) {
       this.logger?.(
         `error sending file: ${
@@ -194,6 +220,10 @@ export class FtpClient {
           event: "sent",
         }
       );
+      if (isTransportFailure(error)) {
+        await Promise.resolve(this.transferHooks?.onConnectionFailure?.());
+      }
+      return false;
     } finally {
       if (client) {
         client.trackProgress();
@@ -224,7 +254,7 @@ export class FtpClient {
     }
   }
 
-  async createDirectory(localpath: string) {
+  async createDirectory(localpath: string): Promise<boolean> {
     let client: Client | undefined;
     try {
       client = await this.connect();
@@ -240,6 +270,8 @@ export class FtpClient {
       await client.ensureDir(remoteDir);
       await client.cd(this.config.remoteDirectory);
       await client.uploadFromDir(localpath, remoteDir);
+      await Promise.resolve(this.transferHooks?.onTransferSuccess?.());
+      return true;
     } catch (error) {
       this.logger?.(
         `error creating directory: ${
@@ -251,6 +283,10 @@ export class FtpClient {
           event: "created",
         }
       );
+      if (isTransportFailure(error)) {
+        await Promise.resolve(this.transferHooks?.onConnectionFailure?.());
+      }
+      return false;
     } finally {
       if (client) {
         client.trackProgress();

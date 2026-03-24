@@ -7,6 +7,11 @@ interface FtpConfig {
   remoteDirectory: string;
 }
 
+interface SyncOutageState {
+  outageStartedAt: string;
+  localDirectory: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ParametersExceptFirst<F> = F extends (first: any, ...rest: infer R) => any
   ? R

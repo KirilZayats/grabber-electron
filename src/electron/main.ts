@@ -1,4 +1,5 @@
-import { app, BrowserWindow, dialog } from "electron";
+import { app, BrowserWindow, dialog, Tray, Menu, nativeImage } from "electron";
+import { fileURLToPath } from "node:url";
 import storage from "electron-json-storage";
 import { getPreloadPath, getUIPath } from "./pathResolver.js";
 import {
@@ -11,17 +12,35 @@ import {
   ipcMainHandle,
 } from "./utils.js";
 import { FtpClient } from "./ftp.js";
+import { SyncRecovery, type OutageStorage } from "./syncRecovery.js";
 import WatchDir from "./watchDir.js";
 import path from "path";
 
 storage.setDataPath(path.join(app.getPath("userData"), "grabber"));
 
+function loadTrayIcon() {
+  const mainDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.join(mainDir, "..", "desktopIcon.png"),
+    path.join(app.getAppPath(), "desktopIcon.png"),
+  ];
+  for (const p of candidates) {
+    const img = nativeImage.createFromPath(p);
+    if (!img.isEmpty()) {
+      return img;
+    }
+  }
+  return nativeImage.createEmpty();
+}
+
 app.on("ready", () => {
+  let allowQuit = false;
+
   const mainWindow = new BrowserWindow({
     webPreferences: {
       preload: getPreloadPath(),
     },
-    fullscreen: true,
+    maximizable: true,
     minWidth: 1000,
     minHeight: 600,
   });
@@ -32,6 +51,47 @@ app.on("ready", () => {
     mainWindow.loadFile(getUIPath());
     mainWindow.setMenu(null);
   }
+
+  const trayIcon = loadTrayIcon();
+  const tray = new Tray(trayIcon);
+  tray.setToolTip(app.getName());
+
+  const showMainWindow = () => {
+    mainWindow.show();
+    mainWindow.focus();
+  };
+
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: "Show", click: () => showMainWindow() },
+      { type: "separator" },
+      {
+        label: "Quit",
+        click: () => {
+          allowQuit = true;
+          app.quit();
+        },
+      },
+    ])
+  );
+
+  tray.on("click", () => showMainWindow());
+
+  mainWindow.on("close", (e) => {
+    if (!allowQuit) {
+      e.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
+  app.on("before-quit", () => {
+    allowQuit = true;
+  });
+
+  app.on("will-quit", () => {
+    tray.destroy();
+  });
+
   const watchDir = new WatchDir();
   const logger = (message: string, type: LogType, scope: EventScope) => {
     const log = generateLog(mainWindow.webContents, message, type, scope);
@@ -126,7 +186,18 @@ app.on("ready", () => {
   });
 
   ipcMainOn("startWatching", async (payload: FtpConfig) => {
-    const ftpClient = new FtpClient(payload, logger, progress);
+    const syncRecovery = new SyncRecovery(
+      storage as unknown as OutageStorage,
+      payload.localDirectory,
+      logger
+    );
+    const ftpClientHolder: { client?: FtpClient } = {};
+    const ftpClient = new FtpClient(payload, logger, progress, {
+      onTransferSuccess: () =>
+        syncRecovery.onSuccessfulTransfer(ftpClientHolder.client!),
+      onConnectionFailure: () => syncRecovery.markOutageIfNeeded(),
+    });
+    ftpClientHolder.client = ftpClient;
     watchDir.start(payload.localDirectory, ftpClient, logger);
   });
 

@@ -42,7 +42,9 @@ const FtpDirSelection = ({
               <Dialog.ActionTrigger asChild>
                 <Button variant="outline">Cancel</Button>
               </Dialog.ActionTrigger>
-              <Button>Select</Button>
+              <Dialog.ActionTrigger asChild>
+                <Button>Select</Button>
+              </Dialog.ActionTrigger>
             </Dialog.Footer>
             <Dialog.CloseTrigger asChild>
               <CloseButton size="sm" />
